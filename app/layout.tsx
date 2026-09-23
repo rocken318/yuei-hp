@@ -15,6 +15,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" className={`${notoSans.variable} ${zenKaku.variable} ${spaceGrotesk.variable}`}>
+      <head>
+        <noscript>
+          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+        </noscript>
+      </head>
       <body className="bg-surface text-ink">
         <SmoothScroll>{children}</SmoothScroll>
       </body>

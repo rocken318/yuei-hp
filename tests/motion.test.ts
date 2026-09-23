@@ -10,4 +10,14 @@ describe("motion tokens", () => {
     expect(revealVariants(false).hidden).toMatchObject({ opacity: 0, y: 32 });
     expect(revealVariants(true).hidden).toMatchObject({ opacity: 0, y: 0 });
   });
+  it("visible の transition には delay と duration が含まれる", () => {
+    expect(revealVariants(false, 0.2).visible).toMatchObject({
+      transition: { delay: 0.2, duration: 0.6 },
+    });
+  });
+  it("reduced のときも delay は保持され、duration だけ短縮される", () => {
+    expect(revealVariants(true, 0.2).visible).toMatchObject({
+      transition: { delay: 0.2, duration: 0.25 },
+    });
+  });
 });
