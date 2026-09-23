@@ -16,9 +16,12 @@ type Props = {
  * of content that should be visible immediately.
  *
  * Reduced motion is handled globally by `<MotionConfig reducedMotion="user">`
- * in SmoothScroll, which drops the transform and keeps the fade. Branching on
+ * in SmoothScroll, which drops the transform and keeps the fade for the
+ * animate/whileInView/variants props used here. Branching on
  * useReducedMotion() here would render different initial styles on the
- * server and client (hydration mismatch).
+ * server and client (hydration mismatch). Note that MotionConfig does NOT
+ * cover scroll-linked values (useScroll/useTransform) — components using
+ * those must check useReducedMotion() themselves (see AGENTS.md).
  */
 export function Reveal({ children, className, delay = 0, as = "div" }: Props) {
   const Component = motion[as];

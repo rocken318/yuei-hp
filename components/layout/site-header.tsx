@@ -145,7 +145,7 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link href={contactItem.href} className="rounded-full bg-brand-blue px-5 py-2 text-sm font-medium text-white hover:bg-brand-navy">
+            <Link href={contactItem.href} className="rounded-full bg-brand-blue px-5 py-2 text-sm font-medium text-surface hover:bg-brand-navy">
               {contactItem.label}
             </Link>
           </nav>

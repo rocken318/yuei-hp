@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 遊栄JAPAN コーポレートサイト
 
-## Getting Started
+遊栄JAPAN のコーポレートサイト。Next.js (App Router) + Tailwind CSS v4 + shadcn/ui + Motion で構築。
 
-First, run the development server:
+Corporate website for 遊栄JAPAN (Yuei Japan), built with Next.js (App Router), Tailwind CSS v4, shadcn/ui, and Motion.
+
+## スタック / Stack
+
+- Next.js 16 (App Router, Turbopack)
+- React 19 / TypeScript
+- Tailwind CSS v4 + shadcn/ui
+- Motion (animation) + Lenis (smooth scroll)
+- Vitest (unit) / Playwright (e2e)
+
+## セットアップ / Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 検証コマンド / Checks
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+PR を出す前に、以下をすべて通してください / run all of these before opening a PR:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm e2e
+```
 
-## Learn More
+## アセット生成 / Asset pipeline
 
-To learn more about Next.js, take a look at the following resources:
+`assets-pipeline/` 配下のスクリプトで、原本写真から Web 用アセットを生成する。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm assets:source                       # 原本画像 (images/) を最適化して取り込む
+ASSETS_GEN_CONCURRENCY=2 pnpm assets:gen <briefId...>   # 依頼書からアセットを生成（並列数は環境変数で指定、既定 2）
+pnpm assets:adopt <briefId> <vN>         # 生成済みバージョンを採用して public/ へ反映
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ドキュメント / Docs
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [`AGENTS.md`](./AGENTS.md) — Claude / Codex 共通の開発規約
+- [`docs/superpowers/specs`](./docs/superpowers/specs) — 設計書
+- [`docs/superpowers/plans`](./docs/superpowers/plans) — 実装計画
