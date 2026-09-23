@@ -63,12 +63,15 @@ export function Cta() {
                 <br />
                 <span className="inline-block">一緒に未来をつくる。</span>
               </h2>
+              <p className="mt-4 text-sm leading-[1.9] text-ink-muted [word-break:auto-phrase] lg:mt-6 lg:text-base">
+                採用情報は、各店舗のサイトで公開予定です。
+              </p>
               <div className="mt-6 lg:mt-10">
                 <Link
                   href="/recruit"
                   className="group inline-flex items-center gap-3 rounded-full bg-brand-navy px-7 py-4 text-sm font-bold text-surface transition-colors hover:bg-brand-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue"
                 >
-                  採用情報を見る
+                  採用について
                   <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>

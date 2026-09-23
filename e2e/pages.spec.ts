@@ -13,8 +13,12 @@ const slugsIn = (dir: string, ext: string) =>
 const BUSINESSES = slugsIn("businesses", ".json");
 const VENUES = ["nightlife", "dining", "signage"].flatMap((b) => slugsIn(`venues/${b}`, ".mdx").map((v) => `${b}/${v}`));
 
+const NEWS = slugsIn("news", ".mdx");
+
 const ROUTES = [
   "/about",
+  "/news",
+  ...NEWS.map((n) => `/news/${n}`),
   "/business",
   ...BUSINESSES.map((b) => `/business/${b}`),
   ...VENUES.map((v) => `/business/${v}`),
@@ -43,6 +47,7 @@ async function scrollToBottom(page: Page) {
 test("content lists match the expected route set", () => {
   expect(BUSINESSES).toHaveLength(4);
   expect(VENUES).toHaveLength(9);
+  expect(NEWS).toContain("2026-09-24-site-open");
 });
 
 for (const route of ROUTES) {
@@ -69,6 +74,11 @@ test("/about shows the company table and the draft badge (non-production build)"
   const profile = page.getByTestId("company-profile");
   await profile.scrollIntoViewIfNeeded();
   await expect(profile.getByText("社名", { exact: true })).toBeVisible();
+  await expect(profile.getByText("4370001019890")).toBeVisible();
+  const access = page.getByTestId("access");
+  await access.scrollIntoViewIfNeeded();
+  await expect(access.getByRole("link", { name: /Google マップ/ })).toHaveAttribute("href", /google\.com\/maps/);
+  await expect(page.locator("footer address")).toHaveText("宮城県仙台市青葉区国分町2丁目8番30号 NJビル5階");
   const badge = page.getByTestId("draft-badge");
   await badge.scrollIntoViewIfNeeded();
   await expect(badge).toBeVisible();

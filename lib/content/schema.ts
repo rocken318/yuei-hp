@@ -82,8 +82,16 @@ export const VenueFrontmatterSchema = z
 export type Venue = z.infer<typeof VenueFrontmatterSchema> & { body: string };
 
 export const CompanySchema = z.object({
+  /** Registered (legal) name, e.g. "遊栄Japan株式会社". */
   name: z.string().min(1),
+  /** Reading of `name` in katakana (without 株式会社). */
+  nameKana: z.string().min(1).optional(),
   nameEn: z.string().min(1),
+  /** 法人番号 (13 digits, National Tax Agency). */
+  corporateNumber: z
+    .string()
+    .regex(/^\d{13}$/, "法人番号は13桁の数字で書いてください")
+    .optional(),
   representative: z.string().optional(),
   established: z.string().optional(),
   capital: z.string().optional(),
@@ -104,3 +112,35 @@ export const CompanySchema = z.object({
     .optional(),
 });
 export type Company = z.infer<typeof CompanySchema>;
+
+export const newsCategories = ["お知らせ", "店舗", "採用", "メディア"] as const;
+export type NewsCategory = (typeof newsCategories)[number];
+
+/** Date → "YYYY-MM-DD" (UTC: YAML dates are parsed as UTC midnight). */
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/** A real calendar day written as "YYYY-MM-DD". */
+const isValidDay = (s: string) => {
+  const d = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && isoDay(d) === s;
+};
+
+export const NewsFrontmatterSchema = z.object({
+  title: z.string().min(1),
+  /**
+   * Publication day, "YYYY-MM-DD". Unquoted YAML dates arrive as Date
+   * objects (gray-matter) and are turned back into the same string.
+   */
+  date: z.preprocess(
+    (v) => (v instanceof Date && !Number.isNaN(v.getTime()) ? isoDay(v) : v),
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "date は YYYY-MM-DD で書いてください")
+      .refine(isValidDay, "date が実在する日付ではありません"),
+  ),
+  category: z.enum(newsCategories),
+  /** Short summary for lists (optional). */
+  excerpt: z.string().min(1).optional(),
+});
+/** A news item; `slug` is the file name without ".mdx". */
+export type NewsItem = z.infer<typeof NewsFrontmatterSchema> & { slug: string; body: string };

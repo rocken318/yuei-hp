@@ -27,6 +27,19 @@ PR を出す前に、以下をすべて通してください / run all of these 
 pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm e2e
 ```
 
+## 本番公開チェックリスト / Production launch checklist
+
+Vercel の本番環境（Production）に公開する前に確認する。
+
+- [ ] `NEXT_PUBLIC_SITE_URL` を本番ドメインに設定（未設定だと canonical / sitemap / JSON-LD が `https://yuei-hp.vercel.app` を指す。ビルド時に警告が出る）
+- [ ] お問い合わせメール: `RESEND_API_KEY` / `CONTACT_TO` / `CONTACT_FROM` の 3 つをすべて設定（どれか欠けるとフォームは「準備中」表示のまま）
+  - [ ] 送信元ドメインを Resend でドメイン認証（SPF / DKIM）し、`CONTACT_FROM` はそのドメインのアドレスにする（`onboarding@resend.dev` はアカウント所有者にしか届かない）
+  - [ ] 本番でテスト送信し、`CONTACT_TO` に届くことを確認
+- [ ] TODO: フォームのスパム対策（レート制限 / Cloudflare Turnstile など）を導入
+- [ ] 会社情報の事実確認・記入: `content/company.json`（住所・連絡先など）と各店舗・設置場所 `content/venues/**/*.mdx`（住所・営業時間など）。不明な項目は推測で埋めない
+- [ ] 代表あいさつ（`content/company.json` の `greeting`、`draft: true`）の文面承認を得て `draft` を外す（本番では draft は非表示）
+- [ ] プライバシーポリシーの法務確認（`app/privacy/page.tsx` の `TODO(legal)`）
+
 ## アセット生成 / Asset pipeline
 
 `assets-pipeline/` 配下のスクリプトで、原本写真から Web 用アセットを生成する。

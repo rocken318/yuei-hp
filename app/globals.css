@@ -56,9 +56,13 @@
   --color-brand-blue: #0d3192;
   --color-brand-sky: #b8ddf3;
 
-  --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
-  --font-heading: var(--font-zen-kaku), var(--font-noto-sans-jp), sans-serif;
-  --font-display: var(--font-space-grotesk), var(--font-zen-kaku), sans-serif;
+  /* Body: the platform's Japanese font (no web font — see app/layout.tsx). */
+  --font-sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic Medium", "YuGothic", "Meiryo", system-ui, sans-serif;
+  /* Headings: Zen Kaku Gothic New is loaded in weight 700 ONLY (app/layout.tsx).
+     Keep headings bold (font-bold); any other weight falls back to a
+     browser-synthesized face or the system font. */
+  --font-heading: var(--font-zen-kaku), var(--font-sans);
+  --font-display: var(--font-space-grotesk), var(--font-sans);
 
   --radius-card: 1.25rem;
 

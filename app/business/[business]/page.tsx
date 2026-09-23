@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { notFound } from "next/navigation";
 import { content, isVenueBusiness, type Business, type BusinessSlug } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
@@ -23,7 +25,11 @@ export async function generateMetadata({ params }: PageProps<"/business/[busines
   const { business: slug } = await params;
   const business = await content.getBusiness(slug);
   if (!business) return {};
-  return { title: business.brand ?? business.name, description: business.lead ?? business.summary };
+  return pageMetadata({
+    title: business.brand ?? business.name,
+    description: business.lead ?? business.summary,
+    path: `/business/${business.slug}`,
+  });
 }
 
 /** Closing call-to-action per business. */
@@ -31,18 +37,18 @@ const CTA: Record<BusinessSlug, { eyebrow: string; title: string; body: string; 
   nightlife: {
     eyebrow: "RECRUIT",
     title: "国分町の夜を、一緒に彩りませんか。",
-    body: "一人ひとりのお客様と真摯に向き合い、上質な時間をともにつくる仲間を求めています。募集状況は採用情報をご覧ください。",
+    body: "一人ひとりのお客様と真摯に向き合い、上質な時間をともにつくる。採用情報は各店舗のサイトで公開予定です。",
     actions: [
-      { href: "/recruit", label: "採用情報を見る" },
+      { href: "/recruit", label: "採用について" },
       { href: "/contact?type=other", label: "お問い合わせ" },
     ],
   },
   dining: {
     eyebrow: "RECRUIT",
     title: "おもてなしの時間を、一緒につくりませんか。",
-    body: "料理と空間で、また訪れたくなるお店をともにつくる仲間を求めています。募集状況は採用情報をご覧ください。",
+    body: "料理と空間で、また訪れたくなるお店をともにつくる。採用情報は各店舗のサイトで公開予定です。",
     actions: [
-      { href: "/recruit", label: "採用情報を見る" },
+      { href: "/recruit", label: "採用について" },
       { href: "/contact?type=other", label: "お問い合わせ" },
     ],
   },
@@ -68,6 +74,8 @@ export default async function BusinessPage({ params }: PageProps<"/business/[bus
   const title = business.brand ?? business.name;
   const venues = isVenueBusiness(business.slug) ? await content.getVenues(business.slug) : [];
   const cta = CTA[business.slug];
+  const path = `/business/${business.slug}`;
+  const crumbs = [{ href: "/", label: "ホーム" }, { href: "/business", label: "事業紹介" }, { label: title }];
 
   return (
     <>
@@ -76,8 +84,9 @@ export default async function BusinessPage({ params }: PageProps<"/business/[bus
         title={<TitleLines parts={titleParts(title, business.titleDisplay)} />}
         lead={business.lead ?? business.summary}
         image={business.heroImage ? { src: business.heroImage, alt: `${title}のイメージ` } : undefined}
-        breadcrumbs={[{ href: "/", label: "ホーム" }, { href: "/business", label: "事業紹介" }, { label: title }]}
+        breadcrumbs={crumbs}
       />
+      <BreadcrumbJsonLd items={crumbs} path={path} />
 
       <Intro business={business} />
 

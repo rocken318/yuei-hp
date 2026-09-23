@@ -14,6 +14,10 @@ import { VenueHero } from "@/components/sections/venue/venue-hero";
 import { venueGallery } from "@/lib/page/gallery";
 import { visibleInfoRows } from "@/lib/page/info-rows";
 import { paragraphs } from "@/lib/page/text";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { localBusinessJsonLd } from "@/lib/seo/json-ld";
+import { SITE_URL } from "@/lib/site";
+import { BreadcrumbJsonLd, JsonLd } from "@/components/seo/json-ld";
 
 export const dynamicParams = false;
 
@@ -39,7 +43,7 @@ const load = cache(async (businessSlug: string, venueSlug: string) => {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { business: businessSlug, venue: venueSlug } = await params;
   const { venue } = await load(businessSlug, venueSlug);
-  return { title: venue.name, description: venue.catchcopy };
+  return pageMetadata({ title: venue.name, description: venue.catchcopy, path: `/business/${venue.business}/${venue.slug}` });
 }
 
 function infoRows(venue: Venue): InfoRow[] {
@@ -96,6 +100,15 @@ export default async function VenuePage({ params }: Props) {
   // (2+ → swipe gallery, 1 → one wide photo, none → no section).
   const gallery = venueGallery(venue.gallery, venue.heroImage, venue.name);
   const businessHref = `/business/${business.slug}`;
+  const path = `${businessHref}/${venue.slug}`;
+  const crumbs = [
+    { href: "/", label: "ホーム" },
+    { href: "/business", label: "事業紹介" },
+    { href: businessHref, label: business.name },
+    { label: venue.name },
+  ];
+  // Only for a store with a known address (none yet → nothing emitted).
+  const localBusiness = localBusinessJsonLd(venue, path, SITE_URL);
 
   return (
     <>
@@ -107,13 +120,10 @@ export default async function VenuePage({ params }: Props) {
         catchcopy={venue.catchcopy}
         image={venue.heroImage}
         placeholderLabel={signage ? "YUEI VISION" : "YUEI JAPAN"}
-        breadcrumbs={[
-          { href: "/", label: "ホーム" },
-          { href: "/business", label: "事業紹介" },
-          { href: businessHref, label: business.name },
-          { label: venue.name },
-        ]}
+        breadcrumbs={crumbs}
       />
+      <BreadcrumbJsonLd items={crumbs} path={path} />
+      {localBusiness && <JsonLd data={localBusiness} />}
 
       {/* Intro */}
       <section aria-labelledby="venue-intro" className="bg-surface py-20 md:py-32">

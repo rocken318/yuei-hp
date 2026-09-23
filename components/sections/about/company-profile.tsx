@@ -16,11 +16,18 @@ export function CompanyProfile({ company, summary }: Props) {
       value: (
         <>
           {company.name}
+          {company.nameKana && (
+            <span className="mt-0.5 block text-xs tracking-[0.08em] text-ink-muted md:text-sm">{company.nameKana}</span>
+          )}
           <span className="mt-0.5 block font-display text-xs tracking-[0.12em] text-ink-muted md:text-sm">
             {company.nameEn}
           </span>
         </>
       ),
+    },
+    {
+      label: "法人番号",
+      value: company.corporateNumber && <span className="tabular-nums">{company.corporateNumber}</span>,
     },
     { label: "代表者", value: company.representative },
     { label: "設立", value: company.established },

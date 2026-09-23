@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { content, isVenueBusiness } from "@/lib/content";
 import { PageHeader } from "@/components/page/page-header";
 import { BusinessRow } from "@/components/sections/business/business-row";
 import { BusinessCta } from "@/components/sections/business/business-cta";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "事業紹介",
   description:
     "ナイトエンターテインメント・飲食・デジタルサイネージ・Web開発。仙台・国分町を拠点に遊栄JAPANが展開する4つの事業をご紹介します。",
-};
+  path: "/business",
+});
+
+const CRUMBS = [{ href: "/", label: "ホーム" }, { label: "事業紹介" }];
 
 export default async function BusinessIndexPage() {
   const businesses = await content.getBusinesses();
@@ -32,8 +37,9 @@ export default async function BusinessIndexPage() {
         }
         lead="夜の街のにぎわいから、食卓のひととき、街頭のビジョン、そしてWebまで。国分町を拠点に、人と街をつなぐ4つの事業を展開しています。"
         image={{ src: "/images/generated/business-hero.webp", alt: "並んだ4つのガラスのキューブ" }}
-        breadcrumbs={[{ href: "/", label: "ホーム" }, { label: "事業紹介" }]}
+        breadcrumbs={CRUMBS}
       />
+      <BreadcrumbJsonLd items={CRUMBS} path="/business" />
 
       <section aria-label="事業一覧" className="bg-surface py-24 md:py-36">
         <div className="mx-auto flex max-w-7xl flex-col gap-24 px-5 md:gap-36 md:px-8">

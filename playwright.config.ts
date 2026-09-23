@@ -13,6 +13,9 @@ export default defineConfig({
     port: 3100,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Mail stays off regardless of the developer's .env files: the e2e suite
+    // expects the "準備中" form (e2e/contact.spec.ts) and must never send.
+    env: { RESEND_API_KEY: "", CONTACT_TO: "", CONTACT_FROM: "" },
   },
   projects: [
     { name: "mobile", use: { ...devices["iPhone 14"] } },
