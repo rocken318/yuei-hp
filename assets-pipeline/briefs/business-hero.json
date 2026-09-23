@@ -1,0 +1,9 @@
+{
+  "id": "business-hero",
+  "purpose": "事業紹介ページのヘッダー画像",
+  "page": "/business",
+  "aspect": "21:9",
+  "size": "1680x720",
+  "prompt": "Abstract premium composition on a white background: four translucent glass cubes arranged in a gentle arc, each lit from inside with a different subtle tone (warm amber, soft gold, royal blue, sky blue) representing four business domains, soft caustics and reflections on a white floor, lots of negative space on the left.",
+  "variants": 2
+}

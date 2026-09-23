@@ -30,5 +30,21 @@
     "briefHash": "8470c8e42895090adb1e0471aca216be73db92bb1a20c16086f34b82a003ff1c",
     "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
     "adoptedAt": "2026-09-23T13:54:00.080Z"
+  },
+  {
+    "id": "about-hero",
+    "variant": "v2",
+    "output": "public/images/generated/about-hero.webp",
+    "briefHash": "5ae8d87dbe295f51b97f54d05ca91917c4699c9d7f95a5b0bd8752946fa1e1b3",
+    "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
+    "adoptedAt": "2026-09-23T15:46:42.925Z"
+  },
+  {
+    "id": "business-hero",
+    "variant": "v1",
+    "output": "public/images/generated/business-hero.webp",
+    "briefHash": "cd544808b507129c948a5ac5e232eb382cfaaf9d7c3cef241db6c5d94404ca23",
+    "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
+    "adoptedAt": "2026-09-23T15:46:43.694Z"
   }
 ]
