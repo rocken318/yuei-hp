@@ -161,7 +161,7 @@ export function LogoAssemble({ progress, stageRef, className }: Props) {
   const pillarAlpha = useTransform(() => pillarOpacity.get() * appear.get());
 
   return (
-    <div ref={boxRef} aria-hidden className={cn("relative aspect-[148.638/172.6681]", className)}>
+    <div ref={boxRef} data-testid="logo-mark" aria-hidden className={cn("relative aspect-[148.638/172.6681]", className)}>
       <motion.svg
         viewBox={`0 0 ${VBW} ${VBH}`}
         className="absolute inset-0 size-full overflow-visible"
@@ -236,6 +236,7 @@ function Piece({ index, p, layout, time, still, appear }: PieceProps) {
   const g = piece.gradient;
   return (
     <motion.div
+      data-piece
       className="absolute will-change-transform"
       style={{
         left: `${(b.x / VBW) * 100}%`,

@@ -17,7 +17,7 @@ type Props = { businesses: Business[] };
 export function Businesses({ businesses }: Props) {
   const total = businesses.length;
   return (
-    <section aria-labelledby="business-heading" className="relative bg-surface">
+    <section data-testid="businesses" aria-labelledby="business-heading" className="relative bg-surface">
       <div className="mx-auto max-w-7xl px-5 pt-24 md:px-8 md:pt-36">
         <Reveal>
           <p className="font-display text-xs font-medium tracking-[0.3em] text-brand-blue md:text-sm">

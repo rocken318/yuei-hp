@@ -12,6 +12,7 @@ const WORDS = ["NIGHT ENTERTAINMENT", "DINING", "YUEI VISION", "WEB & CONTENT"];
 export function BusinessMarquee() {
   return (
     <div
+      data-testid="marquee"
       aria-hidden="true"
       className="relative overflow-hidden border-y border-line bg-surface py-6 md:py-10"
     >

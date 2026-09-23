@@ -52,6 +52,12 @@ export function Message() {
     const v = bgScaleRaw.get();
     return active.get() ? v : 1;
   });
+  // Soft leading edge while the stage rises over the end of the hero. Static
+  // (SSR / reduced motion) keeps it on, so the overlap never shows a hard edge.
+  const edgeFade = useTransform(() => {
+    const v = arrival.get();
+    return active.get() ? 1 - v : 1;
+  });
   const barScale = useTransform(() => {
     const v = reveal.get();
     return active.get() ? v : 1;
@@ -60,8 +66,11 @@ export function Message() {
   return (
     <section
       ref={sectionRef}
+      data-testid="message"
       aria-labelledby="message-heading"
-      className="relative h-[250svh] bg-surface"
+      // Overlaps the last 30svh of the hero's pinned track so the city
+      // crossfades in over the hero instead of after a blank gap.
+      className="relative z-10 -mt-[30svh] h-[250svh]"
     >
       <div className="sticky top-0 h-svh overflow-hidden">
         <motion.div
@@ -82,6 +91,17 @@ export function Message() {
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-gradient-to-b from-surface/85 via-surface/70 to-surface/90 md:bg-gradient-to-r md:from-surface/90 md:via-surface/72 md:to-surface/25"
+        />
+
+        {/* Soft edges: top while arriving from the hero, bottom on the way out. */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-1/3 bg-linear-to-b from-surface to-transparent"
+          style={{ opacity: edgeFade }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-1/4 bg-linear-to-t from-surface to-transparent"
         />
 
         <div className="relative mx-auto flex h-full max-w-7xl items-center px-5 pt-16 md:px-8 md:pt-20">

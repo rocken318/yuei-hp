@@ -35,7 +35,10 @@ export function Hero() {
 
   const imageScale = useTransform(p, [0, 1], [1, 1.12]);
   const imageY = useTransform(p, [0, 1], ["0%", "-3%"]);
-  const imageOpacity = useTransform(p, [0.35, 1], [1, 0.7]);
+  const imageOpacity = useTransform(p, [0.35, 1], [1, 0.35]);
+  // Hand-off to the message: the stage's bottom edge dissolves into the
+  // surface as the pin releases, so no hard photo edge scrolls up.
+  const exitFade = useTransform(p, [0.55, 1], [0, 1]);
   const copyY = useTransform(p, [0, 1], [0, -28]);
   const ruleScale = useTransform(() => {
     const v = scrollYProgress.get();
@@ -44,7 +47,7 @@ export function Hero() {
   const cueOpacity = useTransform(p, [0, 0.12], [1, 0]);
 
   return (
-    <section ref={sectionRef} aria-labelledby="hero-heading" className="relative h-[200svh]">
+    <section ref={sectionRef} data-testid="hero" aria-labelledby="hero-heading" className="relative h-[200svh]">
       <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <motion.div
           aria-hidden
@@ -68,6 +71,12 @@ export function Hero() {
         <div
           aria-hidden
           className="absolute inset-y-0 left-0 hidden w-[55%] bg-linear-to-r from-surface/90 via-surface/60 to-transparent md:block"
+        />
+
+        <motion.div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-surface to-transparent"
+          style={{ opacity: exitFade }}
         />
 
         <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-5 pb-32 md:justify-center md:px-8 md:pb-0">

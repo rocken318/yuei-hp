@@ -32,7 +32,7 @@ export function Cta() {
   const imageYPercent = useTransform(imageY, (v) => `${v}%`);
 
   return (
-    <section aria-labelledby="recruit-heading" className="bg-surface pb-24 md:pb-36">
+    <section data-testid="cta" aria-labelledby="recruit-heading" className="bg-surface pb-24 md:pb-36">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         {/* Recruit banner */}
         <Reveal>

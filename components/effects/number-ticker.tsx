@@ -62,6 +62,7 @@ export function NumberTicker({ value, className, delay = 0 }: NumberTickerProps)
       </span>
       <span
         ref={countRef}
+        data-ticker-count
         aria-hidden="true"
         className="col-start-1 row-start-1 text-right"
       >

@@ -72,6 +72,7 @@ export function Signage({ venues }: Props) {
 
   return (
     <section
+      data-testid="signage"
       aria-labelledby="signage-heading"
       className="relative overflow-hidden bg-brand-navy py-24 text-surface md:py-36"
     >
@@ -122,11 +123,16 @@ export function Signage({ venues }: Props) {
         <div className="mt-16 md:mt-24">
           <div className="mb-5 flex items-end justify-between md:mb-8">
             <h3 className="font-display text-xs tracking-[0.3em] text-brand-sky">LOCATIONS</h3>
-            <p aria-hidden className="font-display text-xs tracking-[0.2em] text-surface/60 md:hidden">
+            <p
+              data-testid="signage-counter"
+              aria-hidden
+              className="font-display text-xs tracking-[0.2em] text-surface/60 md:hidden"
+            >
               <span className="text-surface">{pad(swipeIndex + 1)}</span> / {pad(venues.length)}
             </p>
           </div>
           <ul
+            data-testid="signage-cards"
             onScroll={onSwipe}
             className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-5 px-5 pb-2 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden"
           >

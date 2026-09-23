@@ -22,7 +22,7 @@ export function Numbers({ businessCount, storeCount, signageCount }: Props) {
   ];
 
   return (
-    <section aria-labelledby="numbers-heading" className="bg-surface py-24 md:py-36">
+    <section data-testid="numbers" aria-labelledby="numbers-heading" className="bg-surface py-24 md:py-36">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>

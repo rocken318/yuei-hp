@@ -5,8 +5,11 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import "./globals.css";
 
-const notoSans = Noto_Sans_JP({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-noto-sans-jp", display: "swap" });
-const zenKaku = Zen_Kaku_Gothic_New({ subsets: ["latin"], weight: ["500", "700", "900"], variable: "--font-zen-kaku", display: "swap" });
+// The Japanese families ship ~120 unicode-range files each; preloading them
+// would force every file to download up front (240+ requests). Let the
+// browser fetch only the ranges the page actually uses.
+const notoSans = Noto_Sans_JP({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-noto-sans-jp", display: "swap", preload: false });
+const zenKaku = Zen_Kaku_Gothic_New({ subsets: ["latin"], weight: ["500", "700", "900"], variable: "--font-zen-kaku", display: "swap", preload: false });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-space-grotesk", display: "swap" });
 
 export const metadata: Metadata = {
