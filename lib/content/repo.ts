@@ -4,13 +4,16 @@ import matter from "gray-matter";
 import { z } from "zod";
 import {
   BusinessSchema,
+  CompanySchema,
   VenueFrontmatterSchema,
   type Business,
+  type Company,
   type Venue,
   type VenueBusinessSlug,
 } from "./schema";
 
 export interface ContentRepo {
+  getCompany(): Promise<Company>;
   getBusinesses(): Promise<Business[]>;
   getBusiness(slug: string): Promise<Business | undefined>;
   getVenues(business: VenueBusinessSlug): Promise<Venue[]>;
@@ -103,5 +106,16 @@ export function createContentRepo(root: string): ContentRepo {
     return venues.find((v) => v.slug === slug);
   }
 
-  return { getBusinesses, getBusiness, getVenues, getVenue };
+  async function getCompany(): Promise<Company> {
+    const fileName = "company.json";
+    let data: unknown;
+    try {
+      data = JSON.parse(await fs.readFile(path.join(root, fileName), "utf8"));
+    } catch (err) {
+      wrapParseError(fileName, err);
+    }
+    return parseOrThrow(CompanySchema, data, fileName);
+  }
+
+  return { getCompany, getBusinesses, getBusiness, getVenues, getVenue };
 }

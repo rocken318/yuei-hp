@@ -1,1 +1,15 @@
-{ "slug": "nightlife", "name": "ナイトエンターテインメント事業", "nameEn": "Night Entertainment", "summary": "国分町の夜を彩るラウンジ・クラブ・バーを運営。非日常の空間と上質なおもてなしを提供します。", "heroImage": "/images/source/b-club/light-01.webp", "order": 1 }
+{
+  "slug": "nightlife",
+  "name": "ナイトエンターテインメント事業",
+  "titleDisplay": "ナイト|エンターテインメント|事業",
+  "nameEn": "Night Entertainment",
+  "summary": "国分町の夜を彩るラウンジ・クラブ・バーを運営。非日常の空間と上質なおもてなしを提供します。",
+  "heroImage": "/images/source/b-club/light-01.webp",
+  "order": 1,
+  "lead": "国分町の夜に、心ほどける非日常のひとときを。",
+  "description": [
+    "KINGYO、B-club、C-girl。コンセプトの異なる店舗それぞれが、空間づくりからおもてなしまで、独自の世界観を大切にしています。",
+    "訪れるたびに新しい発見があり、また帰ってきたくなる場所であること。一人ひとりのお客様と真摯に向き合い、上質な時間をお届けします。",
+    "国分町の夜を彩る一員として、街に活気と笑顔を生み出していきます。"
+  ]
+}

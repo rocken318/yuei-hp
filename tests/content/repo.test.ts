@@ -89,4 +89,28 @@ describe("createContentRepo", () => {
     );
     await expect(createContentRepo(dir).getVenues("dining")).rejects.toThrow(/wrongslug\.mdx/);
   });
+
+  it("会社情報を取得でき、greeting.draft の既定値は false", async () => {
+    const company = await repo.getCompany();
+    expect(company.name).toBe("テスト株式会社");
+    expect(company.businessSummary).toEqual(["事業A", "事業B"]);
+    expect(company.greeting?.draft).toBe(false);
+  });
+
+  it("company.json のスキーマ違反はファイル名付きで例外になる", async () => {
+    const dir = makeTempDir();
+    writeFileSync(path.join(dir, "company.json"), JSON.stringify({ name: "A" }));
+    await expect(createContentRepo(dir).getCompany()).rejects.toThrow(/company\.json/);
+  });
+
+  it("壊れた company.json はファイル名付きで例外になる", async () => {
+    const dir = makeTempDir();
+    writeFileSync(path.join(dir, "company.json"), "{ nope");
+    await expect(createContentRepo(dir).getCompany()).rejects.toThrow(/company\.json/);
+  });
+
+  it("company.json が無い場合もファイル名付きで例外になる", async () => {
+    const dir = makeTempDir();
+    await expect(createContentRepo(dir).getCompany()).rejects.toThrow(/company\.json/);
+  });
 });

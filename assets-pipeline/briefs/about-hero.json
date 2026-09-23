@@ -1,0 +1,10 @@
+{
+  "id": "about-hero",
+  "purpose": "会社概要ページのヘッダー画像（企業としての信頼感）",
+  "page": "/about",
+  "aspect": "21:9",
+  "size": "1680x720",
+  "prompt": "Serene high-key panoramic view of Sendai city at early morning, soft white mist over the city and tree-lined avenues (Jozenji-dori like zelkova trees), gentle blue sky, a single tall navy glass building catching the light, calm, trustworthy, premium corporate photography, bright negative space on the left.",
+  "negative": ["readable signage", "people faces"],
+  "variants": 2
+}

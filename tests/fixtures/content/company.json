@@ -1,0 +1,7 @@
+{
+  "name": "テスト株式会社",
+  "nameEn": "Test Inc.",
+  "businessSummary": ["事業A", "事業B"],
+  "philosophy": { "title": "理念タイトル", "body": "理念本文" },
+  "greeting": { "title": "挨拶タイトル", "body": "挨拶本文" }
+}

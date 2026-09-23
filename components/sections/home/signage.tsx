@@ -1,13 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useRef, useState, type UIEvent } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/effects/reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { stepOf } from "@/lib/page/gallery";
 import { cn, pad2 } from "@/lib/utils";
+import { VenueCard } from "@/components/page/venue-card";
 import { SectionEyebrow } from "./section-eyebrow";
 import type { Venue } from "@/lib/content/schema";
 
@@ -55,9 +56,8 @@ export function Signage({ venues }: Props) {
     (e: UIEvent<HTMLUListElement>) => {
       const el = e.currentTarget;
       if (el.scrollWidth <= el.clientWidth) return;
-      const first = el.firstElementChild as HTMLElement | null;
-      if (!first) return;
-      const step = first.offsetWidth + parseFloat(getComputedStyle(el).columnGap || "0");
+      const step = stepOf(el);
+      if (step === 0) return;
       const i = Math.min(venues.length - 1, Math.max(0, Math.round(el.scrollLeft / step)));
       setSwipeIndex(i);
       setHighlight(venues[i]?.slug ?? null);
@@ -134,10 +134,15 @@ export function Signage({ venues }: Props) {
               <li key={v.slug} className="w-[78%] shrink-0 snap-start sm:w-[45%] md:w-auto">
                 <Reveal delay={i * 0.08} className="h-full">
                   <VenueCard
-                    venue={v}
+                    href={`/business/signage/${v.slug}`}
+                    name={v.name}
+                    catchcopy={v.catchcopy}
+                    image={v.heroImage}
                     index={i}
-                    active={highlight === v.slug}
-                    onHighlight={setHighlight}
+                    tone="onDark"
+                    placeholderLabel="YUEI VISION"
+                    highlighted={highlight === v.slug}
+                    onHighlightChange={(on) => setHighlight(on ? v.slug : null)}
                   />
                 </Reveal>
               </li>
@@ -313,64 +318,5 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
         {venue.name}
       </motion.span>
     </div>
-  );
-}
-
-type CardProps = {
-  venue: SignageVenue;
-  index: number;
-  active: boolean;
-  onHighlight: (slug: string | null) => void;
-};
-
-function VenueCard({ venue, index, active, onHighlight }: CardProps) {
-  return (
-    <Link
-      href={`/business/signage/${venue.slug}`}
-      onPointerEnter={(e) => e.pointerType === "mouse" && onHighlight(venue.slug)}
-      onPointerLeave={(e) => e.pointerType === "mouse" && onHighlight(null)}
-      onFocus={() => onHighlight(venue.slug)}
-      onBlur={() => onHighlight(null)}
-      className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-card bg-surface text-ink ring-2 ring-transparent transition-[box-shadow,transform] duration-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-sky",
-        active && "ring-brand-sky md:-translate-y-1",
-      )}
-    >
-      <div className="relative aspect-[4/3] overflow-hidden">
-        {venue.heroImage ? (
-          <Image
-            src={venue.heroImage}
-            alt=""
-            fill
-            sizes="(min-width: 768px) 25vw, 78vw"
-            className="object-cover transition-transform duration-reveal group-hover:scale-105"
-          />
-        ) : (
-          <div
-            aria-hidden
-            className="bg-brand-gradient absolute inset-0 flex flex-col items-center justify-center gap-2 text-surface"
-          >
-            <span className="font-display text-[0.625rem] tracking-[0.3em] text-brand-sky">
-              YUEI VISION
-            </span>
-            <span className="text-sm font-bold tracking-[0.15em]">写真準備中</span>
-          </div>
-        )}
-        <span
-          aria-hidden
-          className="absolute left-3 top-3 rounded-full bg-brand-navy/85 px-2.5 py-1 font-display text-[0.6875rem] tracking-[0.15em] text-brand-sky"
-        >
-          {pad2(index + 1)}
-        </span>
-      </div>
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-lg font-bold">{venue.name}</p>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted [word-break:auto-phrase]">{venue.catchcopy}</p>
-        <p className="mt-5 inline-flex items-center gap-2 text-xs font-bold tracking-[0.1em] text-brand-blue">
-          詳しく見る
-          <ArrowRight aria-hidden className="size-3.5 transition-transform group-hover:translate-x-1" />
-        </p>
-      </div>
-    </Link>
   );
 }

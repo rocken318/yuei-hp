@@ -19,7 +19,7 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     {
       name: "mobile-reduced",
-      testMatch: /home\.spec\.ts/,
+      testMatch: /(?:home|pages)\.spec\.ts/,
       use: { ...devices["iPhone 14"], reducedMotion: "reduce" },
     },
   ],
