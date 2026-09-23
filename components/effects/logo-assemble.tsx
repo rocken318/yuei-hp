@@ -1,19 +1,23 @@
 "use client";
 
-import { useEffect, useId, useRef, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import {
   animate,
+  cancelFrame,
   clamp,
   cubicBezier,
+  frame,
   motion,
+  useInView,
   useMotionValue,
+  useMotionValueEvent,
   useReducedMotion,
-  useTime,
   useTransform,
   type MotionValue,
 } from "motion/react";
 import { MARK_PIECES, MARK_VIEWBOX, PILLAR_FACES, type Point } from "@/lib/brand/mark-geometry";
-import { duration, ease } from "@/lib/motion";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { delay, duration, ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -51,6 +55,8 @@ const ORDER = [0, 3, 1, 4, 2, 5] as const;
 const START = 0.04;
 const STAGGER = 0.05;
 const TRAVEL = 0.4; // last piece lands at 0.04 + 5 * 0.05 + 0.4 = 0.69
+/** Progress at which every piece is home (the idle float has faded out). */
+const ASSEMBLED_AT = START + (ORDER.length - 1) * STAGGER + TRAVEL;
 
 const PILLAR_IN: [number, number] = [0.02, 0.42];
 
@@ -95,18 +101,25 @@ export function LogoAssemble({ progress, stageRef, className }: Props) {
   const reduced = useReducedMotion() ?? false;
   const boxRef = useRef<HTMLDivElement>(null);
   const layout = useMotionValue<Layout>(null);
-  const still = useMotionValue(0); // 1 when reduced motion
   const appear = useMotionValue(0);
-  const time = useTime();
+  // SSR / hydration / reduced motion: assembled.
+  const active = useMotionActive();
+  const p = useGated(progress, active, 1);
 
-  const p = useTransform(() => {
-    const v = progress.get();
-    return still.get() ? 1 : v;
-  });
-
+  // Clock for the idle float. It only ticks while the float can be seen:
+  // stage in view, motion allowed, and pieces not yet all home — otherwise no
+  // frame callback is registered at all (no perpetual frame loop).
+  const clock = useMotionValue(0);
+  const inView = useInView(stageRef);
+  const [assembled, setAssembled] = useState(false);
+  useMotionValueEvent(p, "change", (v) => setAssembled(v >= ASSEMBLED_AT));
+  const floating = inView && !reduced && !assembled;
   useEffect(() => {
-    still.set(reduced ? 1 : 0);
-  }, [reduced, still]);
+    if (!floating) return;
+    const tick: Parameters<typeof frame.update>[0] = ({ delta }) => clock.set(clock.get() + delta);
+    frame.update(tick, true);
+    return () => cancelFrame(tick);
+  }, [floating, clock]);
 
   useEffect(() => {
     const box = boxRef.current;
@@ -148,7 +161,7 @@ export function LogoAssemble({ progress, stageRef, className }: Props) {
     const ro = new ResizeObserver(measure);
     ro.observe(stage);
     ro.observe(box);
-    const controls = animate(appear, 1, { duration: duration.slow, ease: ease.out, delay: 0.15 });
+    const controls = animate(appear, 1, { duration: duration.slow, ease: ease.out, delay: delay.beat });
     return () => {
       ro.disconnect();
       controls.stop();
@@ -172,7 +185,7 @@ export function LogoAssemble({ progress, stageRef, className }: Props) {
         ))}
       </motion.svg>
       {MARK_PIECES.map((piece, i) => (
-        <Piece key={i} index={i} p={p} layout={layout} time={time} still={still} appear={appear} />
+        <Piece key={i} index={i} p={p} layout={layout} clock={clock} appear={appear} />
       ))}
     </div>
   );
@@ -188,12 +201,11 @@ type PieceProps = {
   index: number;
   p: MotionValue<number>;
   layout: MotionValue<Layout>;
-  time: MotionValue<number>;
-  still: MotionValue<number>;
+  clock: MotionValue<number>;
   appear: MotionValue<number>;
 };
 
-function Piece({ index, p, layout, time, still, appear }: PieceProps) {
+function Piece({ index, p, layout, clock, appear }: PieceProps) {
   // React ids may contain characters that are awkward inside url(#...).
   const gradId = `mark-grad-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const piece = MARK_PIECES[index];
@@ -204,15 +216,9 @@ function Piece({ index, p, layout, time, still, appear }: PieceProps) {
 
   // 0 = scattered, 1 = home.
   const t = useTransform(() => easeInOut(clamp(0, 1, (p.get() - start) / TRAVEL)));
-  // Idle float, fading out as the piece travels home. Off for reduced motion.
-  // Note: computed motion values only track the values read on their first
-  // run, so every dependency is read unconditionally before branching.
-  const drift = useTransform(() => {
-    const off = still.get();
-    const now = time.get();
-    const home = t.get();
-    return off ? 0 : Math.sin(now / 1100 + phase) * (1 - home);
-  });
+  // Idle float, fading out as the piece travels home. Reduced motion: p is
+  // pinned at 1 (home), so it is 0; the clock doesn't tick either.
+  const drift = useTransform(() => Math.sin(clock.get() / 1100 + phase) * (1 - t.get()));
 
   const x = useTransform(() => (layout.get()?.pieces[index].dx ?? 0) * (1 - t.get()));
   const y = useTransform(() => {

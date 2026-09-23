@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
-import { motion, useMotionValue, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { LogoAssemble } from "@/components/effects/logo-assemble";
-import { duration, ease } from "@/lib/motion";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { delay, duration, ease } from "@/lib/motion";
 
 /**
  * Home hero. A 200svh scroll track with a sticky 100svh stage: scrolling
@@ -13,25 +14,19 @@ import { duration, ease } from "@/lib/motion";
  *
  * The h1 is the LCP element, so it is server-rendered fully visible (no
  * initial opacity/transform); only scroll-linked transforms touch it.
- * Reduced motion: no scroll-linked motion, the mark is shown assembled.
+ * Reduced motion: no scroll-linked motion, the mark is shown assembled and
+ * the track collapses to a single screen (no pin to scroll through).
  */
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion() ?? false;
   // Scroll-linked values aren't covered by <MotionConfig reducedMotion>, so
   // gate them here. A motion value (not a render branch) keeps the server and
   // first client render identical.
-  const still = useMotionValue(0);
-  useEffect(() => {
-    still.set(reduced ? 1 : 0);
-  }, [reduced, still]);
+  const active = useMotionActive();
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const p = useTransform(() => {
-    const v = scrollYProgress.get();
-    return still.get() ? 0 : v;
-  });
+  const p = useGated(scrollYProgress, active, 0);
 
   const imageScale = useTransform(p, [0, 1], [1, 1.12]);
   const imageY = useTransform(p, [0, 1], ["0%", "-3%"]);
@@ -40,14 +35,15 @@ export function Hero() {
   // surface as the pin releases, so no hard photo edge scrolls up.
   const exitFade = useTransform(p, [0.55, 1], [0, 1]);
   const copyY = useTransform(p, [0, 1], [0, -28]);
-  const ruleScale = useTransform(() => {
-    const v = scrollYProgress.get();
-    return still.get() ? 1 : v;
-  });
+  // The message stage rises over the lower part of the stage from p ≈ 0.7
+  // (its white veil would leave the lead text faintly showing through), so
+  // the lead is gone before the overlap reaches it.
+  const leadOpacity = useTransform(p, [0.72, 0.9], [1, 0]);
+  const ruleScale = useGated(scrollYProgress, active, 1);
   const cueOpacity = useTransform(p, [0, 0.12], [1, 0]);
 
   return (
-    <section ref={sectionRef} data-testid="hero" aria-labelledby="hero-heading" className="relative h-[200svh]">
+    <section ref={sectionRef} data-testid="hero" aria-labelledby="hero-heading" className="relative h-[200svh] motion-reduce:h-svh">
       <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
         <motion.div
           aria-hidden
@@ -70,7 +66,7 @@ export function Hero() {
         />
         <div
           aria-hidden
-          className="absolute inset-y-0 left-0 hidden w-[55%] bg-linear-to-r from-surface/90 via-surface/60 to-transparent md:block"
+          className="absolute inset-y-0 left-0 hidden w-[max(55%,calc(50%+16rem))] bg-linear-to-r from-surface/90 via-surface/60 to-transparent md:block"
         />
 
         <motion.div
@@ -98,15 +94,17 @@ export function Hero() {
               <br />
               新しい価値を。
             </h1>
-            <motion.p
-              data-reveal
-              className="mt-5 max-w-sm text-sm leading-relaxed text-ink-muted md:mt-6 md:max-w-md md:text-base"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: duration.slow, ease: ease.out }}
-            >
-              国分町から、飲食・エンターテインメント・デジタルサイネージ・Webへ。
-            </motion.p>
+            <motion.div style={{ opacity: leadOpacity }}>
+              <motion.p
+                data-reveal
+                className="mt-5 max-w-sm text-sm leading-relaxed text-ink-muted md:mt-6 md:max-w-md md:text-base"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: delay.follow, duration: duration.slow, ease: ease.out }}
+              >
+                国分町から、飲食・エンターテインメント・デジタルサイネージ・Webへ。
+              </motion.p>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -119,12 +117,8 @@ export function Hero() {
             SCROLL
           </span>
           <span className="relative block h-10 w-px overflow-hidden bg-line">
-            <motion.span
-              className="absolute inset-x-0 top-0 block h-full origin-top bg-brand-blue"
-              initial={{ y: "-100%" }}
-              animate={{ y: "100%" }}
-              transition={{ duration: duration.slow * 1.5, ease: ease.inOut, repeat: Infinity, repeatDelay: 0.3 }}
-            />
+            {/* CSS keyframes (no JS frame loop); the global reduced-motion rule stops it. */}
+            <span className="absolute inset-x-0 top-0 block h-full animate-scroll-cue bg-brand-blue" />
           </span>
         </motion.div>
       </div>
