@@ -61,6 +61,33 @@
   --font-display: var(--font-space-grotesk), var(--font-zen-kaku), sans-serif;
 
   --radius-card: 1.25rem;
+
+  /* Motion for CSS utilities. Mirrors lib/motion.ts (ease, cssDuration);
+     tests/motion.test.ts keeps the two in sync. */
+  --ease-brand-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-brand-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --transition-duration-hover: 300ms;
+  --transition-duration-reveal: 700ms;
+  --animate-pulse-ring: pulse-ring 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-scroll-cue: scroll-cue 2.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+
+  @keyframes pulse-ring {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  /* Travel down for 1.8s, then rest out of view (0.3s) before repeating. */
+  @keyframes scroll-cue {
+    0% {
+      transform: translateY(-100%);
+    }
+    85.7%,
+    100% {
+      transform: translateY(100%);
+    }
+  }
 }
 
 :root {

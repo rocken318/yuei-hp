@@ -20,7 +20,8 @@ Claude と Codex の両方がこのファイルに従う。設計書: docs/super
 - main へ直接コミットしない（ブランチ → PR → CI → Vercel プレビュー確認 → マージ）。
 - `images/`（原本写真）は読み取り専用。Git に入れない。
 - 色・フォント・角丸は `app/globals.css` のトークン（`bg-surface`, `text-ink`, `text-brand-*` など）だけを使う。16進カラーを直書きしない。
-- アニメーションのイージング・時間は `lib/motion.ts` の値だけを使う。
+- アニメーションのイージング・時間は `lib/motion.ts` の値だけを使う（`ease` / `duration` / `delay` / `spring`）。CSS 側は `app/globals.css` の対応トークン（`duration-hover` / `duration-reveal` / `ease-brand-*` / `animate-pulse-ring` / `animate-scroll-cue`、値は `cssDuration` と同期）を使い、`duration-300` や `[animation-duration:…]` などの直書きをしない。
+- スクロール連動値の静止は `useGated(source, useMotionActive(), rest)`（`lib/effects/hooks.ts`）で行う。常時回るフレームループ（`useTime`、`repeat: Infinity` の JS アニメーション）は使わない。ループ演出は CSS keyframes か、表示中だけ動くフレームコールバックにする。
 - すべてのアニメーションは `prefers-reduced-motion` で停止すること（`useReducedMotion()` を使う）。
 - ホバー依存の演出には、モバイル（タッチ）用の代替演出を必ず用意する。
 - コンテンツは `lib/content.ts` 経由でのみ読む。ページから `content/` を直接 import しない。
