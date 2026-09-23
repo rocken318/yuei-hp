@@ -31,18 +31,18 @@ const CTA: Record<BusinessSlug, { eyebrow: string; title: string; body: string; 
   nightlife: {
     eyebrow: "RECRUIT",
     title: "国分町の夜を、一緒に彩りませんか。",
-    body: "一人ひとりのお客様と真摯に向き合い、上質な時間をともにつくる仲間を求めています。募集状況は採用情報をご覧ください。",
+    body: "一人ひとりのお客様と真摯に向き合い、上質な時間をともにつくる。採用情報は各店舗のサイトで公開予定です。",
     actions: [
-      { href: "/recruit", label: "採用情報を見る" },
+      { href: "/recruit", label: "採用について" },
       { href: "/contact?type=other", label: "お問い合わせ" },
     ],
   },
   dining: {
     eyebrow: "RECRUIT",
     title: "おもてなしの時間を、一緒につくりませんか。",
-    body: "料理と空間で、また訪れたくなるお店をともにつくる仲間を求めています。募集状況は採用情報をご覧ください。",
+    body: "料理と空間で、また訪れたくなるお店をともにつくる。採用情報は各店舗のサイトで公開予定です。",
     actions: [
-      { href: "/recruit", label: "採用情報を見る" },
+      { href: "/recruit", label: "採用について" },
       { href: "/contact?type=other", label: "お問い合わせ" },
     ],
   },
