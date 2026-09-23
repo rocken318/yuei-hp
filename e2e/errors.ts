@@ -1,10 +1,11 @@
 import type { Page } from "@playwright/test";
 
 /**
- * Routes later plans add. Until then, Link prefetches for them (the page and
- * its RSC variants: `?_rsc=…`, `.rsc`, `.segments/…`) 404 — expected.
+ * Routes not built yet. Link prefetches for them (the page and its RSC
+ * variants: `?_rsc=…`, `.rsc`, `.segments/…`) 404 — expected. Empty now that
+ * every linked route exists.
  */
-const FUTURE_ROUTES: readonly string[] = ["/news"];
+const FUTURE_ROUTES: readonly string[] = [];
 
 export const isFutureRoute = (url: string) => {
   const path = new URL(url).pathname;
