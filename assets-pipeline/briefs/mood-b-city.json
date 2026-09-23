@@ -1,0 +1,10 @@
+{
+  "id": "mood-b-city",
+  "purpose": "ムードボードB: 白く霞んだ国分町の夜景（ハイキー）",
+  "page": "/",
+  "aspect": "16:9",
+  "size": "1536x864",
+  "prompt": "High-key, softly overexposed elevated view of a Japanese downtown entertainment district street (Kokubuncho, Sendai) at blue hour, wrapped in luminous white haze, small points of blue and warm light rendered as delicate bokeh, calm and premium rather than busy, no readable signs, generous bright negative space in the upper left for a headline.",
+  "negative": ["readable signage", "crowds of faces"],
+  "variants": 2
+}

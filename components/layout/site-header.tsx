@@ -9,9 +9,11 @@ import { useLenis } from "lenis/react";
 import { navItems, contactItem } from "./nav-items";
 import { duration, ease } from "@/lib/motion";
 
-// Intrinsic size of public/brand/yuei-logo.png (confirmed via sharp metadata).
-const LOGO_W = 1200;
-const LOGO_H = 497;
+// Intrinsic size of public/brand/yuei-logo.svg (its viewBox aspect ratio).
+// next/image infers `unoptimized` automatically for a ".svg" src, so no
+// extra prop is needed here.
+const LOGO_W = 417;
+const LOGO_H = 173;
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -130,7 +132,7 @@ export function SiteHeader() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
           <Link href="/" aria-label="遊栄JAPAN トップへ" onClick={() => close()}>
             <Image
-              src="/brand/yuei-logo.png"
+              src="/brand/yuei-logo.svg"
               alt="遊栄JAPAN"
               width={LOGO_W}
               height={LOGO_H}
