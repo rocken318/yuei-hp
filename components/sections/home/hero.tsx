@@ -31,13 +31,22 @@ export function Hero() {
   const imageScale = useTransform(p, [0, 1], [1, 1.12]);
   const imageY = useTransform(p, [0, 1], ["0%", "-3%"]);
   const imageOpacity = useTransform(p, [0.35, 1], [1, 0.35]);
-  // Hand-off to the message: the stage's bottom edge dissolves into the
-  // surface as the pin releases, so no hard photo edge scrolls up.
+  // Hand-off to the message (md+): the stage's bottom edge dissolves into the
+  // surface as the pin releases, so no hard photo edge scrolls up. Phones
+  // skip it: their bottom scrim already ends in the surface colour, and a
+  // white layer rising there would wash over the low-set headline.
   const exitFade = useTransform(p, [0.55, 1], [0, 1]);
   const copyY = useTransform(p, [0, 1], [0, -28]);
-  // The message stage rises over the lower part of the stage from p ≈ 0.7
-  // (its white veil would leave the lead text faintly showing through), so
-  // the lead is gone before the overlap reaches it.
+  // Once the pin releases the stage scrolls away under the frosted header.
+  // Fade the copy out completely (not a half-washed state) well before the
+  // headline gets there: 0 at the release, 1 when the stage has left.
+  const { scrollYProgress: exit } = useScroll({ target: sectionRef, offset: ["end end", "end start"] });
+  const leaving = useGated(exit, active, 0);
+  const copyOpacity = useTransform(leaving, [0.14, 0.28], [1, 0]);
+  // md+: the message stage rises over the lower part of the stage from
+  // p ≈ 0.7 (its white veil would leave the lead text faintly showing
+  // through), so the lead is gone before the overlap reaches it. Phones have
+  // no overlap; the lead fades the same way for a consistent hand-off.
   const leadOpacity = useTransform(p, [0.72, 0.9], [1, 0]);
   const ruleScale = useGated(scrollYProgress, active, 1);
   const cueOpacity = useTransform(p, [0, 0.12], [1, 0]);
@@ -71,12 +80,12 @@ export function Hero() {
 
         <motion.div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-surface to-transparent"
+          className="absolute inset-x-0 bottom-0 hidden h-1/2 bg-linear-to-t from-surface to-transparent md:block"
           style={{ opacity: exitFade }}
         />
 
         <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-5 pb-32 md:justify-center md:px-8 md:pb-0">
-          <motion.div style={{ y: copyY }} className="max-w-xl">
+          <motion.div style={{ y: copyY, opacity: copyOpacity }} className="max-w-xl">
             <LogoAssemble progress={scrollYProgress} stageRef={stageRef} className="w-20 md:w-32" />
             <div className="mt-6 flex items-center gap-4 md:mt-8">
               <p className="font-display text-xs tracking-[0.3em] text-brand-blue md:text-sm">YUEI JAPAN Inc.</p>
