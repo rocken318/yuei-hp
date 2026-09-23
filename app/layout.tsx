@@ -25,7 +25,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-surface text-ink">
         <SmoothScroll>
           <SiteHeader />
-          <main>{children}</main>
+          <main
+            id="main"
+            tabIndex={-1}
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-blue"
+          >
+            {children}
+          </main>
           <SiteFooter />
         </SmoothScroll>
       </body>

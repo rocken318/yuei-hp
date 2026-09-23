@@ -8,13 +8,15 @@ test("トップが表示され、コンソールエラーがない", async ({ pa
   const businessPreview = page.getByTestId("business-preview");
   await businessPreview.scrollIntoViewIfNeeded();
   await expect(businessPreview).toBeVisible();
+  await expect(page.locator("[data-reveal]").first()).toHaveCSS("opacity", "1");
 
   // Routes like /about, /business, /news, /recruit, /contact don't exist yet
   // at this stage of the build (later plans add them). Next.js Link prefetch
   // 404s for those routes are expected here and are not real bugs; filter
-  // only messages that reference a 404 so any other console error still fails
-  // the test.
-  const unexpected = errors.filter((e) => !/404/.test(e));
+  // only messages that reference a failed-resource 404 so any other console
+  // error — including one that merely mentions "404" in unrelated text —
+  // still fails the test.
+  const unexpected = errors.filter((e) => !/Failed to load resource.*404/.test(e));
   expect(unexpected).toEqual([]);
 });
 
@@ -34,18 +36,22 @@ test("モバイルメニューが画面を覆い、フォーカス管理され�
   await toggle.click();
 
   const menu = page.getByRole("navigation", { name: "モバイルメニュー" });
-  const dialog = page.getByRole("dialog", { name: "メニュー" });
+  const container = page.locator("#mobile-menu");
   await expect(menu).toBeVisible();
-  await expect(dialog).toBeVisible();
+  await expect(container).toBeVisible();
+  // Disclosure pattern, not a dialog: no role="dialog"/aria-modal, so the
+  // toggle button (outside this container) stays reachable to AT.
+  await expect(container).not.toHaveAttribute("aria-modal");
+  await expect(container).not.toHaveAttribute("role", "dialog");
   await expect(page.getByRole("button", { name: "メニューを閉じる" })).toHaveAttribute(
     "aria-controls",
-    (await dialog.getAttribute("id")) ?? "",
+    (await container.getAttribute("id")) ?? "",
   );
 
   // The menu must fill the viewport below the 64px header, not collapse
   // into the header's containing block.
   await expect
-    .poll(async () => (await dialog.boundingBox())?.height ?? 0)
+    .poll(async () => (await container.boundingBox())?.height ?? 0)
     .toBeGreaterThan(300);
 
   // Focus moves into the menu.
