@@ -106,7 +106,7 @@ export function MessageStage({ segments }: Props) {
                 className="font-display text-xs font-medium tracking-[0.3em] text-brand-blue md:text-sm"
               >
                 MESSAGE
-                <span className="ml-3 font-heading tracking-[0.15em] text-ink-muted">
+                <span className="ml-3 font-sans tracking-[0.15em] text-ink-muted">
                   / 私たちの想い
                 </span>
               </h2>
