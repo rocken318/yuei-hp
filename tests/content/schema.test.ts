@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   BusinessSchema,
+  NewsFrontmatterSchema,
+  newsCategories,
   CompanySchema,
   venueBusinessSlugs,
   isVenueBusiness,
@@ -115,5 +117,55 @@ describe("titleDisplay", () => {
     expect(BusinessSchema.safeParse({ ...business, brand: "遊栄ビジョン", titleDisplay: "ナイト|事業" }).success).toBe(
       false,
     );
+  });
+});
+
+describe("CompanySchema の登記情報", () => {
+  it("nameKana / corporateNumber は任意", () => {
+    const c = CompanySchema.parse({ name: "A", nameEn: "B" });
+    expect(c.nameKana).toBeUndefined();
+    expect(c.corporateNumber).toBeUndefined();
+  });
+
+  it("nameKana / corporateNumber を受け付ける", () => {
+    const c = CompanySchema.parse({ name: "A", nameEn: "B", nameKana: "エー", corporateNumber: "4370001019890" });
+    expect(c.nameKana).toBe("エー");
+    expect(c.corporateNumber).toBe("4370001019890");
+  });
+
+  it("法人番号は13桁の数字のみ", () => {
+    expect(CompanySchema.safeParse({ name: "A", nameEn: "B", corporateNumber: "123" }).success).toBe(false);
+    expect(CompanySchema.safeParse({ name: "A", nameEn: "B", corporateNumber: "437000101989X" }).success).toBe(false);
+  });
+});
+
+describe("NewsFrontmatterSchema", () => {
+  const base = { title: "タイトル", date: "2026-09-24", category: "お知らせ" };
+
+  it("title / date / category で有効、excerpt は任意", () => {
+    const n = NewsFrontmatterSchema.parse(base);
+    expect(n).toEqual({ title: "タイトル", date: "2026-09-24", category: "お知らせ" });
+  });
+
+  it("excerpt を受け付ける", () => {
+    expect(NewsFrontmatterSchema.parse({ ...base, excerpt: "概要" }).excerpt).toBe("概要");
+  });
+
+  it("category は お知らせ|店舗|採用|メディア のみ", () => {
+    for (const category of newsCategories) {
+      expect(NewsFrontmatterSchema.safeParse({ ...base, category }).success).toBe(true);
+    }
+    expect(NewsFrontmatterSchema.safeParse({ ...base, category: "その他" }).success).toBe(false);
+  });
+
+  it("date は YYYY-MM-DD 文字列（YAML が Date にした値も YYYY-MM-DD に戻す）", () => {
+    expect(NewsFrontmatterSchema.parse({ ...base, date: new Date("2026-01-05T00:00:00Z") }).date).toBe("2026-01-05");
+    expect(NewsFrontmatterSchema.safeParse({ ...base, date: "2026/09/24" }).success).toBe(false);
+    expect(NewsFrontmatterSchema.safeParse({ ...base, date: "2026-9-24" }).success).toBe(false);
+    expect(NewsFrontmatterSchema.safeParse({ ...base, date: "2026-02-30" }).success).toBe(false);
+  });
+
+  it("title が無いと無効", () => {
+    expect(NewsFrontmatterSchema.safeParse({ date: "2026-09-24", category: "お知らせ" }).success).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { watchErrors } from "./errors";
 
-const SECTIONS = ["hero", "message", "businesses", "marquee", "signage", "numbers", "cta"] as const;
+const SECTIONS = ["hero", "message", "businesses", "marquee", "signage", "numbers", "news", "cta"] as const;
 
 /**
  * Scrolls to the bottom in ~1/3-viewport steps, pausing briefly after each,

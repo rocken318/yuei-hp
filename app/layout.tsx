@@ -13,8 +13,8 @@ const zenKaku = Zen_Kaku_Gothic_New({ subsets: ["latin"], weight: ["500", "700",
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-space-grotesk", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "遊栄JAPAN株式会社", template: "%s | 遊栄JAPAN" },
-  description: "仙台・国分町を拠点に、ナイトエンターテインメント・飲食・デジタルサイネージ・Web開発を展開する遊栄JAPAN株式会社のコーポレートサイト。",
+  title: { default: "遊栄Japan株式会社", template: "%s | 遊栄JAPAN" },
+  description: "仙台・国分町を拠点に、ナイトエンターテインメント・飲食・デジタルサイネージ・Web開発を展開する遊栄Japan株式会社のコーポレートサイト。",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

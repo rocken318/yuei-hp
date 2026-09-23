@@ -1,6 +1,9 @@
 {
-  "name": "遊栄JAPAN株式会社",
+  "name": "遊栄Japan株式会社",
+  "nameKana": "ユウエイジャパン",
   "nameEn": "YUEI JAPAN Inc.",
+  "corporateNumber": "4370001019890",
+  "address": "宮城県仙台市青葉区国分町2丁目8番30号 NJビル5階",
   "businessSummary": [
     "ナイトエンターテインメント事業",
     "飲食事業",

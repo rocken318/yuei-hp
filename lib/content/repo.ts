@@ -5,9 +5,11 @@ import { z } from "zod";
 import {
   BusinessSchema,
   CompanySchema,
+  NewsFrontmatterSchema,
   VenueFrontmatterSchema,
   type Business,
   type Company,
+  type NewsItem,
   type Venue,
   type VenueBusinessSlug,
 } from "./schema";
@@ -18,6 +20,9 @@ export interface ContentRepo {
   getBusiness(slug: string): Promise<Business | undefined>;
   getVenues(business: VenueBusinessSlug): Promise<Venue[]>;
   getVenue(business: VenueBusinessSlug, slug: string): Promise<Venue | undefined>;
+  /** News items, newest first. */
+  getNews(): Promise<NewsItem[]>;
+  getNewsItem(slug: string): Promise<NewsItem | undefined>;
 }
 
 function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown, file: string): T {
@@ -46,6 +51,12 @@ async function listFiles(dir: string, ext: string): Promise<string[]> {
 }
 
 const byOrder = <T extends { order: number }>(a: T, b: T) => a.order - b.order;
+
+/** Newest first; same day → by slug, descending (stable across runs). */
+const byDateDesc = (a: NewsItem, b: NewsItem) =>
+  b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug);
+
+const NEWS_SLUG = /^[a-z0-9-]+$/;
 
 export function createContentRepo(root: string): ContentRepo {
   async function getBusinesses(): Promise<Business[]> {
@@ -117,5 +128,32 @@ export function createContentRepo(root: string): ContentRepo {
     return parseOrThrow(CompanySchema, data, fileName);
   }
 
-  return { getCompany, getBusinesses, getBusiness, getVenues, getVenue };
+  async function getNews(): Promise<NewsItem[]> {
+    const files = await listFiles(path.join(root, "news"), ".mdx");
+    const items = await Promise.all(
+      files.map(async (file) => {
+        const fileName = path.basename(file);
+        const slug = fileName.slice(0, -".mdx".length);
+        if (!NEWS_SLUG.test(slug)) {
+          throw new Error(`Invalid content in ${fileName}: file name must be lowercase letters, digits and "-"`);
+        }
+        const raw = await fs.readFile(file, "utf8");
+        let parsed: { data: unknown; content: string };
+        try {
+          parsed = matter(raw);
+        } catch (err) {
+          wrapParseError(fileName, err);
+        }
+        const fm = parseOrThrow(NewsFrontmatterSchema, parsed.data, fileName);
+        return { ...fm, slug, body: parsed.content };
+      }),
+    );
+    return items.sort(byDateDesc);
+  }
+
+  async function getNewsItem(slug: string): Promise<NewsItem | undefined> {
+    return (await getNews()).find((n) => n.slug === slug);
+  }
+
+  return { getCompany, getBusinesses, getBusiness, getVenues, getVenue, getNews, getNewsItem };
 }

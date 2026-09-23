@@ -51,8 +51,11 @@ describe("content/ の実データ", () => {
   });
   it("会社情報: 名称・4事業・企業理念があり、代表挨拶は下書き", async () => {
     const company = await content.getCompany();
-    expect(company.name).toBe("遊栄JAPAN株式会社");
+    expect(company.name).toBe("遊栄Japan株式会社");
+    expect(company.nameKana).toBe("ユウエイジャパン");
     expect(company.nameEn).toBe("YUEI JAPAN Inc.");
+    expect(company.corporateNumber).toBe("4370001019890");
+    expect(company.address).toBe("宮城県仙台市青葉区国分町2丁目8番30号 NJビル5階");
     const businesses = await content.getBusinesses();
     expect(company.businessSummary).toEqual(businesses.map((b) => b.name));
     expect(company.philosophy?.title).toBe("国分町の夜から、街の未来へ。");
@@ -93,5 +96,11 @@ describe("content/ の実データ", () => {
       "開発・制作",
       "公開・運用",
     ]);
+  });
+  it("お知らせ: サイト公開の記事がある", async () => {
+    const news = await content.getNews();
+    expect(news.length).toBeGreaterThan(0);
+    const item = await content.getNewsItem("2026-09-24-site-open");
+    expect(item).toMatchObject({ title: "コーポレートサイトを公開しました", date: "2026-09-24", category: "お知らせ" });
   });
 });

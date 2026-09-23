@@ -113,4 +113,38 @@ describe("createContentRepo", () => {
     const dir = makeTempDir();
     await expect(createContentRepo(dir).getCompany()).rejects.toThrow(/company\.json/);
   });
+
+  it("お知らせを日付の新しい順に返し、slug はファイル名、本文を含む", async () => {
+    const news = await repo.getNews();
+    expect(news.map((n) => n.slug)).toEqual(["2026-03-01-newer", "2026-02-01-middle", "2026-01-10-older"]);
+    expect(news[0]).toMatchObject({ title: "新しいお知らせ", date: "2026-03-01", category: "お知らせ", excerpt: "概要文" });
+    expect(news[0].body.trim()).toBe("新しい本文");
+  });
+
+  it("クォート無しの YAML 日付も YYYY-MM-DD 文字列になる", async () => {
+    expect((await repo.getNewsItem("2026-01-10-older"))?.date).toBe("2026-01-10");
+  });
+
+  it("お知らせを slug で1件取得し、無ければ undefined", async () => {
+    expect((await repo.getNewsItem("2026-02-01-middle"))?.category).toBe("メディア");
+    expect(await repo.getNewsItem("nope")).toBeUndefined();
+  });
+
+  it("news ディレクトリが無ければ空配列", async () => {
+    expect(await createContentRepo(makeTempDir()).getNews()).toEqual([]);
+  });
+
+  it("お知らせのスキーマ違反はファイル名付きで例外になる", async () => {
+    const dir = makeTempDir();
+    mkdirSync(path.join(dir, "news"));
+    writeFileSync(path.join(dir, "news", "bad-news.mdx"), `---\ntitle: x\ndate: "2026-01-01"\ncategory: その他\n---\n本文`);
+    await expect(createContentRepo(dir).getNews()).rejects.toThrow(/bad-news\.mdx/);
+  });
+
+  it("URL に使えないファイル名のお知らせは例外になる", async () => {
+    const dir = makeTempDir();
+    mkdirSync(path.join(dir, "news"));
+    writeFileSync(path.join(dir, "news", "Bad Name.mdx"), `---\ntitle: x\ndate: "2026-01-01"\ncategory: お知らせ\n---\n本文`);
+    await expect(createContentRepo(dir).getNews()).rejects.toThrow(/Bad Name\.mdx/);
+  });
 });
