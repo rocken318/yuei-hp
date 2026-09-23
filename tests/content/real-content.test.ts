@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { content } from "@/lib/content";
+import { titleParts } from "@/components/sections/business/title-parts";
 
 describe("content/ の実データ", () => {
   it("4事業すべてが存在する", async () => {
@@ -56,6 +57,20 @@ describe("content/ の実データ", () => {
     expect(company.businessSummary).toEqual(businesses.map((b) => b.name));
     expect(company.philosophy?.title).toBe("国分町の夜から、街の未来へ。");
     expect(company.greeting?.draft).toBe(true);
+  });
+  it("大見出しの改行単位（titleParts）は最長10文字以内（320px の画面に収まる）", async () => {
+    for (const b of await content.getBusinesses()) {
+      const parts = titleParts(b.brand ?? b.name, b.titleDisplay);
+      expect(Math.max(...parts.map((p) => [...p].length)), parts.join("|")).toBeLessThanOrEqual(10);
+    }
+  });
+  it("拠点名の改行単位は最長7文字以内（ヒーローの h1 が 320px に収まる）", async () => {
+    for (const business of ["nightlife", "dining", "signage"] as const) {
+      for (const v of await content.getVenues(business)) {
+        const parts = titleParts(v.name, v.titleDisplay);
+        expect(Math.max(...parts.map((p) => [...p].length)), parts.join("|")).toBeLessThanOrEqual(7);
+      }
+    }
   });
   it("全事業に lead と description がある", async () => {
     for (const b of await content.getBusinesses()) {

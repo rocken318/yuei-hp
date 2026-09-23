@@ -1,17 +1,15 @@
-import { Fragment } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { content, isVenueBusiness, type Business, type BusinessSlug } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
 import { PageHeader } from "@/components/page/page-header";
+import { TitleLines } from "@/components/page/title-lines";
 import { VenueSwipeList } from "@/components/page/venue-swipe-list";
 import { SectionEyebrow } from "@/components/sections/home/section-eyebrow";
 import { BusinessCta, type BusinessCtaAction } from "@/components/sections/business/business-cta";
 import { FlowTimeline } from "@/components/sections/business/flow-timeline";
 import { ServiceGrid } from "@/components/sections/business/service-grid";
 import { titleParts } from "@/components/sections/business/title-parts";
-
-type Props = { params: Promise<{ business: string }> };
 
 // Only the four businesses exist; anything else is a 404.
 export const dynamicParams = false;
@@ -21,7 +19,7 @@ export async function generateStaticParams() {
   return businesses.map((b) => ({ business: b.slug }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/business/[business]">): Promise<Metadata> {
   const { business: slug } = await params;
   const business = await content.getBusiness(slug);
   if (!business) return {};
@@ -62,7 +60,7 @@ const CTA: Record<BusinessSlug, { eyebrow: string; title: string; body: string; 
   },
 };
 
-export default async function BusinessPage({ params }: Props) {
+export default async function BusinessPage({ params }: PageProps<"/business/[business]">) {
   const { business: slug } = await params;
   const business = await content.getBusiness(slug);
   if (!business) notFound();
@@ -75,7 +73,7 @@ export default async function BusinessPage({ params }: Props) {
     <>
       <PageHeader
         eyebrow={(business.brandEn ?? business.nameEn).toUpperCase()}
-        title={<BreakHints title={title} />}
+        title={<TitleLines parts={titleParts(title, business.titleDisplay)} />}
         lead={business.lead ?? business.summary}
         image={business.heroImage ? { src: business.heroImage, alt: `${title}のイメージ` } : undefined}
         breadcrumbs={[{ href: "/", label: "ホーム" }, { href: "/business", label: "事業紹介" }, { label: title }]}
@@ -143,17 +141,4 @@ function Intro({ business }: { business: Business }) {
       </div>
     </section>
   );
-}
-
-/**
- * Page title with break opportunities at its preferred points (after "・",
- * before a trailing "事業"); PageHeader handles wrapping of long phrases.
- */
-function BreakHints({ title }: { title: string }) {
-  return titleParts(title).map((part, i) => (
-    <Fragment key={part}>
-      {i > 0 && <wbr />}
-      {part}
-    </Fragment>
-  ));
 }

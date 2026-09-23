@@ -97,7 +97,7 @@ export function VenueCard({
         <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted [word-break:auto-phrase]">{catchcopy}</p>
         <p className="mt-5 inline-flex items-center gap-2 text-xs font-bold tracking-[0.1em] text-brand-blue">
           詳しく見る
-          <ArrowRight aria-hidden className="size-3.5 transition-transform group-hover:translate-x-1" />
+          <ArrowRight aria-hidden className="size-3.5 transition-transform duration-hover ease-brand-out group-hover:translate-x-1" />
         </p>
       </div>
     </Link>

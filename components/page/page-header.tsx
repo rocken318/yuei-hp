@@ -17,10 +17,13 @@ type Props = {
  * then an optional wide rounded image that drifts slowly with the scroll.
  * Clears the fixed site header (h-16 / md:h-20). The h1 is server-rendered
  * fully visible (it is the LCP candidate) — no entrance animation.
- * Long titles: lines break between phrases (auto-phrase, balanced), and a
- * single phrase wider than the column (e.g. "ナイトエンターテインメント" on
- * a 320px phone) still wraps (overflow-wrap: anywhere) instead of
- * overflowing; the grid columns are min-w-0 so they never grow past it.
+ * Long titles: pass the title as unbreakable parts (<TitleLines>, one
+ * inline-block per part) — lines break only between parts (balanced) and
+ * never inside a word (break-keep; Safari has no auto-phrase). The size
+ * scales with the column so a 10-character part fits (phones: down to a
+ * 320px screen; md+: the 7/12 column, capped at text-6xl);
+ * overflow-wrap: break-word is only the last resort. The grid columns are
+ * min-w-0 so they never grow past the viewport.
  */
 export function PageHeader({ eyebrow, title, lead, image, breadcrumbs }: Props) {
   return (
@@ -29,7 +32,7 @@ export function PageHeader({ eyebrow, title, lead, image, breadcrumbs }: Props) 
         {breadcrumbs && breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} className="mb-8 md:mb-12" />}
         <SectionEyebrow>{eyebrow}</SectionEyebrow>
         <div className="mt-5 grid grid-cols-1 gap-6 md:mt-6 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:items-end md:gap-12">
-          <h1 className="min-w-0 text-balance text-[2.25rem] font-bold leading-[1.25] text-ink [overflow-wrap:anywhere] [word-break:auto-phrase] md:text-6xl md:leading-[1.2]">
+          <h1 className="min-w-0 text-balance break-keep text-[clamp(1.625rem,calc((100vw-2.5rem)/10.5),2.25rem)] font-bold leading-[1.25] text-ink [overflow-wrap:break-word] md:text-[min(3.75rem,calc((100vw-7rem)/18))] md:leading-[1.2]">
             {title}
           </h1>
           {lead && (

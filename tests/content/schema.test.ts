@@ -99,3 +99,21 @@ describe("BusinessSchema の追加フィールド", () => {
     expect(BusinessSchema.safeParse({ ...base, services: [{ title: "x" }] }).success).toBe(false);
   });
 });
+
+describe("titleDisplay", () => {
+  const business = { slug: "nightlife", name: "ナイト事業", nameEn: "e", summary: "s", order: 1 };
+
+  it("| を除いて表示名と一致すれば有効", () => {
+    expect(BusinessSchema.safeParse({ ...business, titleDisplay: "ナイト|事業" }).success).toBe(true);
+    expect(
+      BusinessSchema.safeParse({ ...business, brand: "遊栄ビジョン", titleDisplay: "遊栄|ビジョン" }).success,
+    ).toBe(true);
+  });
+
+  it("表示名と一致しなければ無効", () => {
+    expect(BusinessSchema.safeParse({ ...business, titleDisplay: "ナイト|事業部" }).success).toBe(false);
+    expect(BusinessSchema.safeParse({ ...business, brand: "遊栄ビジョン", titleDisplay: "ナイト|事業" }).success).toBe(
+      false,
+    );
+  });
+});

@@ -20,6 +20,7 @@ type Props = {
 /**
  * Closing call-to-action panel for the business pages: a navy card with the
  * brand gradient glowing from the corner, a heading and one or two buttons.
+ * Buttons: hover colours on hover-capable pointers, a press-scale on touch.
  */
 export function BusinessCta({ eyebrow, title, body, actions, className }: Props) {
   return (
@@ -53,7 +54,7 @@ export function BusinessCta({ eyebrow, title, body, actions, className }: Props)
                     <Link
                       href={a.href}
                       className={cn(
-                        "group flex items-center justify-between gap-6 rounded-full px-7 py-4 text-sm font-bold transition-colors duration-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-sky md:text-base",
+                        "group flex items-center justify-between gap-6 rounded-full px-7 py-4 text-sm font-bold transition-[color,background-color,border-color,transform] duration-hover ease-brand-out active:scale-[0.98] md:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-sky md:text-base",
                         i === 0
                           ? "bg-surface text-brand-navy hover:bg-brand-sky"
                           : "border border-surface/35 text-surface hover:border-surface hover:bg-surface/10",

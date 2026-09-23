@@ -4,11 +4,15 @@ import Image from "next/image";
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/page/breadcrumbs";
+import { TitleLines } from "@/components/page/title-lines";
+import { titleParts } from "@/components/sections/business/title-parts";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
 import { MARK_PIECES, MARK_VIEWBOX, PILLAR_FACES, type Point } from "@/lib/brand/mark-geometry";
 
 type Props = {
   name: string;
+  /** `name` with "|" at the allowed line breaks (content `titleDisplay`). */
+  titleDisplay?: string;
   nameEn?: string;
   category: string;
   catchcopy: string;
@@ -30,10 +34,12 @@ const toPoints = (pts: readonly Point[]) => pts.map(([x, y]) => `${x},${y}`).joi
  *
  * Scrolling out, the photo settles from a slight push-in (zoom out) and
  * darkens while the copy lifts away. The h1 is the LCP element: rendered
- * fully visible, only scroll-linked transforms touch it. Server/hydration/
+ * fully visible, only scroll-linked transforms touch it. It is set as
+ * unbreakable parts (break-keep) sized so a 7-character part fits a 320px
+ * phone, so a name like 「ダイニングバー|暖家」 never breaks mid-word. Server/hydration/
  * reduced motion: static at the resting state.
  */
-export function VenueHero({ name, nameEn, category, catchcopy, image, placeholderLabel, breadcrumbs }: Props) {
+export function VenueHero({ name, titleDisplay, nameEn, category, catchcopy, image, placeholderLabel, breadcrumbs }: Props) {
   const ref = useRef<HTMLElement>(null);
   const active = useMotionActive();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -59,7 +65,7 @@ export function VenueHero({ name, nameEn, category, catchcopy, image, placeholde
             <PlaceholderArt />
           )}
         </motion.div>
-  
+
         {/* Scroll darkening. */}
         <motion.div aria-hidden className="absolute inset-0 bg-brand-navy" style={{ opacity: shade }} />
         {/* Bottom scrim for the white copy. */}
@@ -69,7 +75,7 @@ export function VenueHero({ name, nameEn, category, catchcopy, image, placeholde
         />
         {/* Soft top shade so the photo meets the white header band cleanly. */}
         <div aria-hidden className="absolute inset-x-0 top-0 h-24 bg-linear-to-b from-brand-navy/40 to-transparent" />
-  
+
         {!image && (
           // Outside the zoom layer so it never gets cropped at the edge.
           <div className="absolute right-5 top-6 flex flex-col items-end gap-2 md:right-8 md:top-8">
@@ -96,9 +102,9 @@ export function VenueHero({ name, nameEn, category, catchcopy, image, placeholde
           </p>
           <h1
             id="venue-heading"
-            className="mt-4 text-[2.75rem] font-bold leading-[1.15] [word-break:auto-phrase] md:mt-5 md:text-7xl md:leading-[1.1] xl:text-8xl"
+            className="mt-4 break-keep text-[clamp(2rem,calc((100vw-2.5rem)/7.5),2.75rem)] font-bold leading-[1.15] [overflow-wrap:break-word] md:mt-5 md:text-7xl md:leading-[1.1] xl:text-8xl"
           >
-            {name}
+            <TitleLines parts={titleParts(name, titleDisplay)} />
           </h1>
           {nameEn && (
             <p className="mt-3 font-display text-xs tracking-[0.3em] text-surface/70 md:text-sm">{nameEn}</p>

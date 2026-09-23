@@ -4,6 +4,8 @@ import type { Business } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
 import { StackingCards, StackingCardItem } from "@/components/effects/stacking-cards";
 import { Tilt } from "@/components/effects/tilt";
+import { TitleLines } from "@/components/page/title-lines";
+import { titleParts } from "@/components/sections/business/title-parts";
 import { pad2 } from "@/lib/utils";
 import { SectionEyebrow } from "./section-eyebrow";
 
@@ -59,16 +61,6 @@ export function Businesses({ businesses }: Props) {
   );
 }
 
-/**
- * Preferred line-break points for a business name: after "・", else before a
- * trailing "事業". Parts render as inline-blocks (max-w-full, so an over-long
- * part can still wrap inside rather than overflow).
- */
-function titleParts(title: string): string[] {
-  const parts = title.split(/(?<=・)/u);
-  return parts.length > 1 ? parts : title.split(/(?=事業$)/u);
-}
-
 function BusinessCard({ business: b, index }: { business: Business; index: number }) {
   const no = pad2(index + 1);
   const title = b.brand ?? b.name;
@@ -103,13 +95,9 @@ function BusinessCard({ business: b, index }: { business: Business; index: numbe
         </p>
         <h3
           id={`business-${b.slug}`}
-          className="mt-2 text-[1.1875rem] leading-snug font-bold text-ink md:mt-5 md:text-3xl md:leading-tight md:tracking-[0.01em] lg:text-[2.125rem]"
+          className="mt-2 break-keep text-[1.1875rem] leading-snug font-bold text-ink [overflow-wrap:break-word] md:mt-5 md:text-3xl md:leading-tight md:tracking-[0.01em] lg:text-[2.125rem]"
         >
-          {titleParts(title).map((part) => (
-            <span key={part} className="inline-block max-w-full">
-              {part}
-            </span>
-          ))}
+          <TitleLines parts={titleParts(title, b.titleDisplay)} />
         </h3>
         {b.brand ? (
           <p className="mt-1 text-xs text-ink-muted md:mt-3 md:text-sm">{b.name}</p>

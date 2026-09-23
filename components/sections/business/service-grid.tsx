@@ -10,7 +10,8 @@ const ICONS: LucideIcon[] = [LayoutTemplate, Workflow, Clapperboard, LifeBuoy];
 
 /**
  * Digital business: the service list as numbered icon cards (one column on
- * phones, two from md). Cards reveal in a light stagger.
+ * phones, two from md). Cards reveal in a light stagger. The cards are not
+ * links, so their hover accent (border, shadow, icon fill) is md+ only.
  */
 export function ServiceGrid({ services }: { services: Service[] }) {
   if (services.length === 0) return null;
@@ -30,7 +31,7 @@ export function ServiceGrid({ services }: { services: Service[] }) {
               <Reveal as="li" key={s.title} delay={(i % 2) * 0.08}>
                 <article className="group flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-[border-color,box-shadow] duration-hover md:p-10 md:hover:border-brand-blue/30 md:hover:shadow-lg md:hover:shadow-brand-navy/5">
                   <div className="flex items-start justify-between">
-                    <span className="flex size-12 items-center justify-center rounded-full bg-brand-sky/40 text-brand-blue transition-colors duration-hover group-hover:bg-brand-blue group-hover:text-surface md:size-14">
+                    <span className="flex size-12 items-center justify-center rounded-full bg-brand-sky/40 text-brand-blue transition-colors duration-hover md:size-14 md:group-hover:bg-brand-blue md:group-hover:text-surface">
                       <Icon aria-hidden className="size-5 md:size-6" />
                     </span>
                     <span aria-hidden className="font-display text-xs tracking-[0.2em] text-ink-muted">

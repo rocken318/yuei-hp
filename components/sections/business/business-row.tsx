@@ -5,6 +5,7 @@ import type { Business } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
 import { Tilt } from "@/components/effects/tilt";
 import { cn, pad2 } from "@/lib/utils";
+import { TitleLines } from "@/components/page/title-lines";
 import { titleParts } from "./title-parts";
 
 type Props = {
@@ -19,7 +20,9 @@ type Props = {
  * One business on the /business index: a large tilting photo beside the copy.
  * From md the photo alternates sides (even rows left, odd rows right); on
  * phones the photo stacks above the copy. The whole row reveals on scroll,
- * the copy a beat after the photo.
+ * the copy a beat after the photo. Hover effects (photo zoom, arrow nudge)
+ * only apply on hover-capable pointers (Tailwind v4 hover); on touch the
+ * photo and the arrow button give press feedback instead.
  */
 export function BusinessRow({ business: b, index, tags = [] }: Props) {
   const no = pad2(index + 1);
@@ -38,7 +41,7 @@ export function BusinessRow({ business: b, index, tags = [] }: Props) {
           href={`/business/${b.slug}`}
           tabIndex={-1}
           aria-hidden
-          className="group block rounded-card"
+          className="group block rounded-card transition-transform duration-hover ease-brand-out active:scale-[0.98] md:active:scale-100"
         >
           <Tilt maxTilt={4} className="rounded-card">
             <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-surface-muted md:aspect-[5/4] lg:aspect-[4/3]">
@@ -79,13 +82,9 @@ export function BusinessRow({ business: b, index, tags = [] }: Props) {
           </p>
           <h2
             id={headingId}
-            className="relative mt-4 text-[1.625rem] font-bold leading-snug text-ink [word-break:auto-phrase] md:text-xl lg:text-[2rem] lg:leading-tight"
+            className="relative mt-4 break-keep text-[1.625rem] font-bold leading-snug text-ink [overflow-wrap:break-word] md:text-xl lg:text-[2rem] lg:leading-tight"
           >
-            {titleParts(title).map((part) => (
-              <span key={part} className="inline-block max-w-full">
-                {part}
-              </span>
-            ))}
+            <TitleLines parts={titleParts(title, b.titleDisplay)} />
           </h2>
           {b.brand && <p className="relative mt-2 text-sm text-ink-muted">{b.name}</p>}
           <p className="relative mt-5 text-base font-bold leading-relaxed text-brand-navy [word-break:auto-phrase] md:mt-7 md:text-lg">
@@ -118,7 +117,7 @@ export function BusinessRow({ business: b, index, tags = [] }: Props) {
             </span>
             <span
               aria-hidden
-              className="inline-flex size-11 items-center justify-center rounded-full bg-brand-blue text-surface transition-transform duration-hover group-hover:translate-x-1 md:size-12"
+              className="inline-flex size-11 items-center justify-center rounded-full bg-brand-blue text-surface transition-transform duration-hover ease-brand-out group-hover:translate-x-1 group-active:scale-90 md:size-12"
             >
               <ArrowRight className="size-4" />
             </span>
