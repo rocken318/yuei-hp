@@ -1,1 +1,16 @@
-{ "slug": "signage", "name": "デジタルサイネージ事業", "nameEn": "Digital Signage", "brand": "遊栄ビジョン", "brandEn": "YUEI VISION", "summary": "国分町の主要動線に設置した大型ビジョンで、街ゆく人々へ確実に届く広告枠を提供します。", "heroImage": "/images/source/signage/peace.webp", "order": 3 }
+{
+  "slug": "signage",
+  "name": "デジタルサイネージ事業",
+  "nameEn": "Digital Signage",
+  "brand": "遊栄ビジョン",
+  "brandEn": "YUEI VISION",
+  "summary": "国分町の主要動線に設置した大型ビジョンで、街ゆく人々へ確実に届く広告枠を提供します。",
+  "heroImage": "/images/source/signage/peace.webp",
+  "order": 3,
+  "lead": "街を行き交う人々へ、伝えたいことをまっすぐに。",
+  "description": [
+    "遊栄ビジョンは、国分町エリアに設置した大型ビジョンによる広告サービスです。夜の街を行き交う人々の視線が集まる場所で、情報を届けます。",
+    "店舗やイベントの告知、ブランドの認知拡大など、目的に合わせてご活用いただけます。放映する映像コンテンツの制作もあわせてご相談ください。",
+    "街の風景の一部として、国分町の新しいにぎわいをつくっていきます。"
+  ]
+}

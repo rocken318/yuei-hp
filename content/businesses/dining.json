@@ -1,1 +1,13 @@
-{ "slug": "dining", "name": "飲食事業", "nameEn": "Dining", "summary": "焼肉とダイニングバー。食を通じて、仲間と過ごす時間の価値を高めます。", "heroImage": "/images/source/en/dish-01.webp", "order": 2 }
+{
+  "slug": "dining",
+  "name": "飲食事業",
+  "nameEn": "Dining",
+  "summary": "焼肉とダイニングバー。食を通じて、仲間と過ごす時間の価値を高めます。",
+  "heroImage": "/images/source/en/dish-01.webp",
+  "order": 2,
+  "lead": "食卓を囲む時間が、特別な思い出になるように。",
+  "description": [
+    "焼肉Enとダイニングバー暖家。業態は異なりますが、どちらも仲間や大切な人と過ごす時間を心地よく演出する店づくりを大切にしています。",
+    "一皿ごとの心配りと、肩ひじ張らずにくつろげる空間。料理とおもてなしの両面から、また訪れたくなるお店を目指します。"
+  ]
+}

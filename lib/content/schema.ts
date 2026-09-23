@@ -13,6 +13,16 @@ export const BusinessSchema = z.object({
   summary: z.string().min(1),
   heroImage: z.string().optional(),
   order: z.number().int(),
+  /** Lead sentence for the business page. */
+  lead: z.string().min(1).optional(),
+  /** Body paragraphs for the business page. */
+  description: z.array(z.string().min(1)).optional(),
+  /** Service list (used by digital). */
+  services: z.array(z.object({ title: z.string().min(1), body: z.string().min(1) })).optional(),
+  /** Production flow steps (used by digital). */
+  flow: z
+    .array(z.object({ step: z.string().optional(), title: z.string().min(1), body: z.string().min(1) }))
+    .optional(),
 });
 export type Business = z.infer<typeof BusinessSchema>;
 
@@ -50,3 +60,27 @@ export const VenueFrontmatterSchema = z.object({
   order: z.number().int(),
 });
 export type Venue = z.infer<typeof VenueFrontmatterSchema> & { body: string };
+
+export const CompanySchema = z.object({
+  name: z.string().min(1),
+  nameEn: z.string().min(1),
+  representative: z.string().optional(),
+  established: z.string().optional(),
+  capital: z.string().optional(),
+  address: z.string().optional(),
+  tel: z.string().optional(),
+  employees: z.string().optional(),
+  businessSummary: z.array(z.string().min(1)).optional(),
+  history: z.array(z.object({ date: z.string().min(1), text: z.string().min(1) })).optional(),
+  philosophy: z.object({ title: z.string().min(1), body: z.string().min(1) }).optional(),
+  greeting: z
+    .object({
+      title: z.string().min(1),
+      body: z.string().min(1),
+      signature: z.string().optional(),
+      /** Draft text: hidden in production (see lib/draft.ts). */
+      draft: z.boolean().default(false),
+    })
+    .optional(),
+});
+export type Company = z.infer<typeof CompanySchema>;
