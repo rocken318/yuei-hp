@@ -2,11 +2,6 @@ import sharp from "sharp";
 import path from "node:path";
 import { mkdirSync } from "node:fs";
 
-// Disable sharp's internal operation cache: on Windows it can keep file
-// handles open briefly after toFile() resolves, which is surprising for a
-// batch CLI that processes many files back-to-back.
-sharp.cache(false);
-
 export async function optimizeImage(
   src: string,
   outBase: string,

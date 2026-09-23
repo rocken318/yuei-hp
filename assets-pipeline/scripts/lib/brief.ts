@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 
 export const BriefSchema = z.object({
-  id: z.string().regex(/^[a-z0-9-]+$/),
+  id: z.string().regex(/^[a-z0-9-]+$/), // keep in sync with BRIEF_ID_RE
   purpose: z.string().min(1),
   page: z.string().min(1),
   aspect: z.string().regex(/^\d+:\d+$/),
@@ -19,11 +19,29 @@ export const StyleSchema = z.object({
 });
 export type Style = z.infer<typeof StyleSchema>;
 
-export type ManifestEntry = { id: string; variant: string; output: string; briefHash: string; adoptedAt: string };
+export const BRIEF_ID_RE = /^[a-z0-9-]+$/;
+
+export const ManifestEntrySchema = z.object({
+  id: z.string().regex(BRIEF_ID_RE),
+  variant: z.string().regex(/^v\d+$/),
+  output: z.string().min(1),
+  briefHash: z.string().min(1),
+  styleHash: z.string().min(1),
+  adoptedAt: z.string().min(1),
+});
+export type ManifestEntry = z.infer<typeof ManifestEntrySchema>;
+
+/** "vN" -> N when 1 <= N <= variants (no leading zeros), otherwise null. */
+export function parseVariant(variant: string | undefined, variants: number): number | null {
+  const m = /^v([1-9]\d*)$/.exec(variant ?? "");
+  if (!m) return null;
+  const n = Number(m[1]);
+  return n <= variants ? n : null;
+}
 
 export function composePrompt(brief: Brief, style: Style, outDir: string): string {
   const files = Array.from({ length: brief.variants }, (_, i) => `${outDir}/v${i + 1}.png`);
-  const negative = [...style.negative, ...brief.negative].join(", ");
+  const negative = [...new Set([...style.negative, ...brief.negative])].join(", ");
   return [
     `Use your image generation tool to create ${brief.variants} distinct variations of one image.`,
     `Purpose: ${brief.purpose} (page ${brief.page}).`,
@@ -31,26 +49,46 @@ export function composePrompt(brief: Brief, style: Style, outDir: string): strin
     `Shared art direction: ${style.description}`,
     `Aspect ratio ${brief.aspect}, target size ${brief.size}.`,
     `Avoid: ${negative}.`,
-    `Save the results as PNG files at exactly these paths (create the folder if needed):`,
+    `Your image generation tool saves its output under ~/.codex/generated_images/<session-id>/ — that is NOT the final location.`,
+    `After generating, copy (with a shell command) each final PNG to exactly these paths, one image per path, creating the folder if needed:`,
     ...files.map((f) => `- ${f}`),
+    `If the generated size differs from ${brief.size}, center-crop to ${brief.aspect} and resize to exactly ${brief.size} before saving.`,
+    `Only use the image generation tool to create images. Never draw, synthesize or fake images with code (PIL, canvas, SVG, etc.). If the tool is unavailable, stop and say so.`,
     `Do not create, modify or delete any other file in the repository. When finished, reply with the list of saved paths.`,
   ].join("\n");
 }
 
 /**
  * Arguments for `codex exec`. The prompt itself is NOT an argument: it is
- * passed on stdin (the trailing "-"), because multi-line prompts do not
- * survive Windows shell quoting when spawning the `codex.cmd` shim.
+ * passed on stdin (the trailing "-") so it never goes through argv quoting.
  */
 export function buildCodexArgs(repoRoot: string, lastMessageFile: string): string[] {
-  return ["exec", "-C", repoRoot, "-s", "workspace-write", "--enable", "image_generation", "-o", lastMessageFile, "-"];
+  return ["exec", "-C", repoRoot, "-s", "workspace-write", "--enable", "image_generation", "--color", "never", "-o", lastMessageFile, "-"];
 }
 
 export function briefHash(brief: Brief): string {
   return createHash("sha256").update(JSON.stringify(brief)).digest("hex");
 }
 
-export function recordAdoption(manifest: ManifestEntry[], brief: Brief, variant: string, output: string, adoptedAt: string): ManifestEntry[] {
-  const entry: ManifestEntry = { id: brief.id, variant, output, briefHash: briefHash(brief), adoptedAt };
+export function styleHash(style: Style): string {
+  return createHash("sha256").update(JSON.stringify(style)).digest("hex");
+}
+
+export function recordAdoption(
+  manifest: ManifestEntry[],
+  brief: Brief,
+  style: Style,
+  variant: string,
+  output: string,
+  adoptedAt: string
+): ManifestEntry[] {
+  const entry: ManifestEntry = {
+    id: brief.id,
+    variant,
+    output,
+    briefHash: briefHash(brief),
+    styleHash: styleHash(style),
+    adoptedAt,
+  };
   return [...manifest.filter((m) => m.id !== brief.id), entry];
 }
