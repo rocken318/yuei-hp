@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Zen_Kaku_Gothic_New, Space_Grotesk } from "next/font/google";
+import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import "./globals.css";
 
 const notoSans = Noto_Sans_JP({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-noto-sans-jp", display: "swap" });
@@ -14,7 +15,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" className={`${notoSans.variable} ${zenKaku.variable} ${spaceGrotesk.variable}`}>
-      <body className="bg-surface text-ink">{children}</body>
+      <body className="bg-surface text-ink">
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }
