@@ -1,0 +1,19 @@
+[
+  { "src": "kingyo/a.jpg", "out": "kingyo/goldfish-bowl" },
+  { "src": "kingyo/Kngyo店内_6300.jpg", "out": "kingyo/chandelier" },
+  { "src": "kingyo/pra/parallax_goldfish.jpg", "out": "kingyo/parallax-goldfish" },
+  { "src": "kingyo/pra/parallax_wagara.jpg", "out": "kingyo/parallax-wagara" },
+  { "src": "kingyo/pra/parallax_champagne.jpg", "out": "kingyo/parallax-champagne" },
+  { "src": "Bclub/21.12.04_B-Club_002.JPG", "out": "b-club/light-01" },
+  { "src": "Bclub/21.12.04_B-Club_003.JPG", "out": "b-club/light-02" },
+  { "src": "Bclub/21.12.04_B-Club_005.jpg", "out": "b-club/light-03" },
+  { "src": "C-girl/b8bb04e0-6a53-4243-83ad-eaff3916e17f.png", "out": "c-girl/exterior" },
+  { "src": "En/S__35217416_0.jpg", "out": "en/dish-01" },
+  { "src": "En/S__35217418_0.jpg", "out": "en/dish-02" },
+  { "src": "En/S__35217419_0.jpg", "out": "en/dish-03" },
+  { "src": "暖家/IMG_1894.jpg", "out": "danke/interior-01" },
+  { "src": "暖家/IMG_1895.jpg", "out": "danke/interior-02" },
+  { "src": "暖家/ロゴ.png", "out": "danke/logo" },
+  { "src": "ビジョン/国分町ピースビル.JPEG", "out": "signage/peace" },
+  { "src": "ビジョン/国分町千松島ビル.JPEG", "out": "signage/chimatsushima" }
+]
