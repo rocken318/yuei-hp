@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Zen_Kaku_Gothic_New, Space_Grotesk } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import "./globals.css";
 
 const notoSans = Noto_Sans_JP({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-noto-sans-jp", display: "swap" });
@@ -21,7 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body className="bg-surface text-ink">
-        <SmoothScroll>{children}</SmoothScroll>
+        <SmoothScroll>
+          <SiteHeader />
+          <main>{children}</main>
+          <SiteFooter />
+        </SmoothScroll>
       </body>
     </html>
   );
