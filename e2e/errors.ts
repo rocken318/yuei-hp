@@ -4,7 +4,7 @@ import type { Page } from "@playwright/test";
  * Routes later plans add. Until then, Link prefetches for them (the page and
  * its RSC variants: `?_rsc=…`, `.rsc`, `.segments/…`) 404 — expected.
  */
-const FUTURE_ROUTE = /^\/(?:about|business|news|recruit|contact|privacy)(?:[/.].*)?$/;
+const FUTURE_ROUTE = /^\/(?:news|recruit|contact|privacy)(?:[/.].*)?$/;
 
 export const isFutureRoute = (url: string) => FUTURE_ROUTE.test(new URL(url).pathname);
 
