@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { content, type Business, type Venue } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
 import { PageHeader } from "@/components/page/page-header";
@@ -6,14 +8,17 @@ import { VenueSwipeList } from "@/components/page/venue-swipe-list";
 import { SectionEyebrow } from "@/components/sections/home/section-eyebrow";
 import { BusinessCta } from "@/components/sections/business/business-cta";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "採用情報",
   description:
     "遊栄JAPANの採用情報。ナイトエンターテインメント・飲食の各店舗の採用情報は、各店舗のサイトで公開予定です。",
-};
+  path: "/recruit",
+});
 
 /** Businesses whose stores recruit on their own sites. */
 const STORE_BUSINESSES = ["nightlife", "dining"] as const;
+
+const CRUMBS = [{ href: "/", label: "ホーム" }, { label: "採用情報" }];
 
 export default async function RecruitPage() {
   const groups = (
@@ -32,8 +37,9 @@ export default async function RecruitPage() {
         title="採用情報"
         lead="国分町の夜と食の現場で、お客様の特別な時間をともにつくる。遊栄JAPANの各店舗の採用についてご案内します。"
         image={{ src: "/images/generated/recruit-banner.webp", alt: "夕暮れの並木道を並んで歩く4人の後ろ姿" }}
-        breadcrumbs={[{ href: "/", label: "ホーム" }, { label: "採用情報" }]}
+        breadcrumbs={CRUMBS}
       />
+      <BreadcrumbJsonLd items={CRUMBS} path="/recruit" />
 
       <section aria-labelledby="recruit-notice-heading" className="bg-surface py-24 md:py-36">
         <div className="mx-auto max-w-7xl px-5 md:px-8">

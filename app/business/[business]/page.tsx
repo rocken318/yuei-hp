@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { notFound } from "next/navigation";
 import { content, isVenueBusiness, type Business, type BusinessSlug } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
@@ -23,7 +25,11 @@ export async function generateMetadata({ params }: PageProps<"/business/[busines
   const { business: slug } = await params;
   const business = await content.getBusiness(slug);
   if (!business) return {};
-  return { title: business.brand ?? business.name, description: business.lead ?? business.summary };
+  return pageMetadata({
+    title: business.brand ?? business.name,
+    description: business.lead ?? business.summary,
+    path: `/business/${business.slug}`,
+  });
 }
 
 /** Closing call-to-action per business. */
@@ -68,6 +74,8 @@ export default async function BusinessPage({ params }: PageProps<"/business/[bus
   const title = business.brand ?? business.name;
   const venues = isVenueBusiness(business.slug) ? await content.getVenues(business.slug) : [];
   const cta = CTA[business.slug];
+  const path = `/business/${business.slug}`;
+  const crumbs = [{ href: "/", label: "ホーム" }, { href: "/business", label: "事業紹介" }, { label: title }];
 
   return (
     <>
@@ -76,8 +84,9 @@ export default async function BusinessPage({ params }: PageProps<"/business/[bus
         title={<TitleLines parts={titleParts(title, business.titleDisplay)} />}
         lead={business.lead ?? business.summary}
         image={business.heroImage ? { src: business.heroImage, alt: `${title}のイメージ` } : undefined}
-        breadcrumbs={[{ href: "/", label: "ホーム" }, { href: "/business", label: "事業紹介" }, { label: title }]}
+        breadcrumbs={crumbs}
       />
+      <BreadcrumbJsonLd items={crumbs} path={path} />
 
       <Intro business={business} />
 

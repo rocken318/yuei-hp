@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { content } from "@/lib/content";
@@ -6,10 +8,12 @@ import { InfoTable } from "@/components/page/info-table";
 import { PageHeader } from "@/components/page/page-header";
 import { pad2 } from "@/lib/utils";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "個人情報保護方針",
-  description: "遊栄JAPANの個人情報保護方針（プライバシーポリシー）。お問い合わせ等でお預かりする個人情報の取り扱いについて定めています。",
-};
+  description:
+    "遊栄JAPANの個人情報保護方針（プライバシーポリシー）。お問い合わせ等でお預かりする個人情報の取り扱いについて定めています。",
+  path: "/privacy",
+});
 
 type Clause = { title: string; body: ReactNode };
 
@@ -72,6 +76,8 @@ const CLAUSES: Clause[] = [
   },
 ];
 
+const CRUMBS = [{ href: "/", label: "ホーム" }, { label: "個人情報保護方針" }];
+
 export default async function PrivacyPage() {
   const company = await content.getCompany();
   const items = CLAUSES;
@@ -82,8 +88,9 @@ export default async function PrivacyPage() {
         eyebrow="PRIVACY POLICY"
         title="個人情報保護方針"
         lead={`${company.name}（以下「当社」）は、お客様からお預かりする個人情報の重要性を認識し、個人情報の保護に関する法令を遵守して、次のとおり適切に取り扱います。`}
-        breadcrumbs={[{ href: "/", label: "ホーム" }, { label: "個人情報保護方針" }]}
+        breadcrumbs={CRUMBS}
       />
+      <BreadcrumbJsonLd items={CRUMBS} path="/privacy" />
       <div className="bg-surface pb-24 pt-16 md:pb-36 md:pt-24">
         <div className="mx-auto max-w-4xl px-5 md:px-8">
           <ol className="grid gap-12 md:gap-16">

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { content } from "@/lib/content";
 import { aboutSections, businessSummaryItems } from "@/lib/page/about";
 import { PageHeader } from "@/components/page/page-header";
@@ -9,11 +11,14 @@ import { History } from "@/components/sections/about/history";
 import { Access } from "@/components/sections/about/access";
 import { AboutCta } from "@/components/sections/about/about-cta";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "会社概要",
   description:
     "遊栄Japan株式会社の企業理念と会社概要。仙台・国分町を拠点に、ナイトエンターテインメント・飲食・デジタルサイネージ・Web開発を展開しています。",
-};
+  path: "/about",
+});
+
+const CRUMBS = [{ href: "/", label: "ホーム" }, { label: "会社概要" }];
 
 export default async function AboutPage() {
   const [company, businesses] = await Promise.all([content.getCompany(), content.getBusinesses()]);
@@ -33,8 +38,9 @@ export default async function AboutPage() {
         }
         lead="仙台・国分町を拠点に、飲食、エンターテインメント、デジタルサイネージ、そしてWebへ。領域を越えて、この街に新しい価値を届けています。"
         image={{ src: "/images/generated/about-hero.webp", alt: "朝霧に包まれた仙台の街並み" }}
-        breadcrumbs={[{ href: "/", label: "ホーム" }, { label: "会社概要" }]}
+        breadcrumbs={CRUMBS}
       />
+      <BreadcrumbJsonLd items={CRUMBS} path="/about" />
       {show.has("philosophy") && company.philosophy && <Philosophy philosophy={company.philosophy} />}
       {show.has("greeting") && company.greeting && <Greeting greeting={company.greeting} />}
       {show.has("profile") && (

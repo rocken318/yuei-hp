@@ -8,6 +8,8 @@ import { Breadcrumbs } from "@/components/page/breadcrumbs";
 import { NewsCategory } from "@/components/page/news-category";
 import { adjacentNews, formatNewsDate } from "@/lib/page/news";
 import { paragraphs } from "@/lib/page/text";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld";
 
 export const dynamicParams = false;
 
@@ -34,7 +36,7 @@ function description(item: NewsItem): string {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const { item } = await load(slug);
-  return { title: item.title, description: description(item) };
+  return pageMetadata({ title: item.title, description: description(item), path: `/news/${item.slug}` });
 }
 
 const adjacentLinkClass =
@@ -45,14 +47,13 @@ export default async function NewsArticlePage({ params }: Props) {
   const { item, newer, older } = await load(slug);
   const body = paragraphs(item.body);
   const hasAdjacent = Boolean(older || newer);
+  const crumbs = [{ href: "/", label: "ホーム" }, { href: "/news", label: "お知らせ" }, { label: item.title }];
 
   return (
     <article className="bg-surface pb-24 pt-24 md:pb-36 md:pt-32">
       <div className="mx-auto max-w-3xl px-5 md:px-8">
-        <Breadcrumbs
-          items={[{ href: "/", label: "ホーム" }, { href: "/news", label: "お知らせ" }, { label: item.title }]}
-          className="mb-10 md:mb-14"
-        />
+        <Breadcrumbs items={crumbs} className="mb-10 md:mb-14" />
+        <BreadcrumbJsonLd items={crumbs} path={`/news/${item.slug}`} />
         <header className="border-b border-line pb-8 md:pb-10">
           <div className="flex items-center gap-4">
             <time dateTime={item.date} className="font-display text-sm tracking-[0.08em] tabular-nums text-ink-muted">

@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { content } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { organizationJsonLd } from "@/lib/seo/json-ld";
+import { SITE_URL } from "@/lib/site";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Hero } from "@/components/sections/home/hero";
 import { Message } from "@/components/sections/home/message";
 import { Businesses } from "@/components/sections/home/businesses";
@@ -8,8 +13,12 @@ import { Numbers } from "@/components/sections/home/numbers";
 import { News } from "@/components/sections/home/news";
 import { Cta } from "@/components/sections/home/cta";
 
+// Title/description: the root layout defaults.
+export const metadata: Metadata = pageMetadata({ path: "/" });
+
 export default async function HomePage() {
-  const [businesses, nightlife, dining, signage, news] = await Promise.all([
+  const [company, businesses, nightlife, dining, signage, news] = await Promise.all([
+    content.getCompany(),
     content.getBusinesses(),
     content.getVenues("nightlife"),
     content.getVenues("dining"),
@@ -24,6 +33,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={organizationJsonLd(company, SITE_URL)} />
       <Hero />
       <Message />
       <Businesses businesses={businesses} />

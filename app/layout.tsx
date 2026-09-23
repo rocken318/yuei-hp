@@ -3,6 +3,8 @@ import { Zen_Kaku_Gothic_New, Space_Grotesk } from "next/font/google";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { OG_BASE } from "@/lib/seo/metadata";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // Japanese web fonts ship ~120 unicode-range files per weight, and every
@@ -15,8 +17,13 @@ const zenKaku = Zen_Kaku_Gothic_New({ subsets: ["latin"], weight: ["700"], varia
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-space-grotesk", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "遊栄Japan株式会社", template: "%s | 遊栄JAPAN" },
+  metadataBase: new URL(SITE_URL),
+  title: { default: "遊栄Japan株式会社", template: `%s | ${SITE_NAME}` },
   description: "仙台・国分町を拠点に、ナイトエンターテインメント・飲食・デジタルサイネージ・Web開発を展開する遊栄Japan株式会社のコーポレートサイト。",
+  // Pages set their own openGraph (url, canonical) via pageMetadata(); this
+  // is the fallback (e.g. 404). The share image comes from opengraph-image.tsx.
+  openGraph: { ...OG_BASE },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
