@@ -1,0 +1,10 @@
+{
+  "id": "biz-digital",
+  "purpose": "トップ「4事業」カード・Web開発/コンテンツ制作事業のビジュアル",
+  "page": "/",
+  "aspect": "4:3",
+  "size": "1536x1152",
+  "prompt": "Clean bright workspace scene for a web development and content production studio: a large monitor and laptop showing abstract website wireframes and a video editing timeline in blue tones, soft daylight, white desk, glass cube paperweight, shallow depth of field, premium corporate photography, no readable text on screens.",
+  "negative": ["readable text on screens", "brand logos", "people faces"],
+  "variants": 2
+}

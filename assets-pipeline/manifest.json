@@ -14,5 +14,21 @@
     "briefHash": "5dafd66668456ba6cbb7747a046ca5d3fe03545c3b431ca2b9560e1492601bcb",
     "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
     "adoptedAt": "2026-09-23T13:48:09.864Z"
+  },
+  {
+    "id": "biz-digital",
+    "variant": "v1",
+    "output": "public/images/generated/biz-digital.webp",
+    "briefHash": "da6c91734df429f911ffb5f6ef82d7423cc0b10b0b1ad099b538c7e00dec0640",
+    "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
+    "adoptedAt": "2026-09-23T13:53:59.304Z"
+  },
+  {
+    "id": "recruit-banner",
+    "variant": "v1",
+    "output": "public/images/generated/recruit-banner.webp",
+    "briefHash": "8470c8e42895090adb1e0471aca216be73db92bb1a20c16086f34b82a003ff1c",
+    "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
+    "adoptedAt": "2026-09-23T13:54:00.080Z"
   }
 ]
