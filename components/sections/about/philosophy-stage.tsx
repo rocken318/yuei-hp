@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll } from "motion/react";
+import { motion } from "motion/react";
 import { ScrollWordReveal } from "@/components/effects/scroll-word-reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { SectionHeading } from "./section-heading";
 
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
 export function PhilosophyStage({ title, segments }: Props) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const active = useMotionActive();
-  const { scrollYProgress } = useScroll({ target: bodyRef, offset: ["start 0.85", "end 0.5"] });
+  const scrollYProgress = useStableScroll(bodyRef, ["start 0.85", "end 0.5"]);
   const rail = useGated(scrollYProgress, active, 1);
 
   return (

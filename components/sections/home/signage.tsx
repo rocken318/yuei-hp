@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useRef, useState, type UIEvent } from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/effects/reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { stepOf } from "@/lib/page/gallery";
 import { cn, pad2 } from "@/lib/utils";
 import { VenueCard } from "@/components/page/venue-card";
@@ -39,7 +40,7 @@ export function Signage({ venues }: Props) {
   const [swipeIndex, setSwipeIndex] = useState(0);
 
   const active = useMotionActive();
-  const { scrollYProgress } = useScroll({ target: mapRef, offset: ["start 85%", "end 45%"] });
+  const scrollYProgress = useStableScroll(mapRef, ["start 85%", "end 45%"]);
   // Server/hydration/reduced motion: 1 (= every pin lit, scan finished).
   const p = useGated(scrollYProgress, active, 1);
   const scanTop = useTransform(p, [0, 0.9], ["0%", "100%"]);

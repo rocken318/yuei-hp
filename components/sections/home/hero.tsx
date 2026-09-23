@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useTransform } from "motion/react";
 import { LogoAssemble } from "@/components/effects/logo-assemble";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { delay, duration, ease } from "@/lib/motion";
 
 /**
@@ -25,7 +26,9 @@ export function Hero() {
   // first client render identical.
   const active = useMotionActive();
 
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  // Measured against the small viewport (see useStableScroll): stable while
+  // the iOS toolbar shows/hides.
+  const scrollYProgress = useStableScroll(sectionRef, ["start start", "end end"]);
   const p = useGated(scrollYProgress, active, 0);
 
   const imageScale = useTransform(p, [0, 1], [1, 1.12]);
@@ -40,7 +43,7 @@ export function Hero() {
   // Once the pin releases the stage scrolls away under the frosted header.
   // Fade the copy out completely (not a half-washed state) well before the
   // headline gets there: 0 at the release, 1 when the stage has left.
-  const { scrollYProgress: exit } = useScroll({ target: sectionRef, offset: ["end end", "end start"] });
+  const exit = useStableScroll(sectionRef, ["end end", "end start"]);
   const leaving = useGated(exit, active, 0);
   const copyOpacity = useTransform(leaving, [0.14, 0.28], [1, 0]);
   // md+: the message stage rises over the lower part of the stage from

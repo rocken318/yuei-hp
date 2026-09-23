@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useTransform } from "motion/react";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 
 type Props = { src: string; alt: string };
 
@@ -17,7 +18,7 @@ type Props = { src: string; alt: string };
 export function PageHeaderImage({ src, alt }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const active = useMotionActive();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const scrollYProgress = useStableScroll(ref, ["start end", "end start"]);
   const p = useGated(scrollYProgress, active, 0.5);
   const scale = useTransform(p, [0, 1], [1.1, 1]);
   const y = useTransform(p, [0, 1], ["-4%", "4%"]);

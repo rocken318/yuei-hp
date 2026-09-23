@@ -2,9 +2,10 @@
 
 import { useRef } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useTransform } from "motion/react";
 import { ScrollWordReveal } from "@/components/effects/scroll-word-reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 
 type Props = {
   /** The message, pre-segmented on the server (lines → segments). */
@@ -24,15 +25,11 @@ export function MessageStage({ segments }: Props) {
   const active = useMotionActive();
 
   // Pinned phase: 0 when the section top hits the viewport top, 1 at its end.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
+  // Measured against the small viewport (see useStableScroll), so the reveal
+  // doesn't jump when the iOS toolbar reappears on the way back up.
+  const scrollYProgress = useStableScroll(sectionRef, ["start start", "end end"]);
   // Arrival phase: the section rising into view (crossfade out of the hero).
-  const { scrollYProgress: arrival } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "start start"],
-  });
+  const arrival = useStableScroll(sectionRef, ["start end", "start start"]);
 
   // Finish the reveal a little before the pin releases so the full message holds.
   const reveal = useTransform(scrollYProgress, [0.04, 0.8], [0, 1]);

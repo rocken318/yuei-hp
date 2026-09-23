@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useTransform } from "motion/react";
 import { ArrowRight, CodeXml, Mail, MonitorPlay } from "lucide-react";
 import { Reveal } from "@/components/effects/reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { SectionEyebrow } from "./section-eyebrow";
 
 const CONTACT_ENTRIES = [
@@ -23,7 +24,7 @@ const CONTACT_ENTRIES = [
 export function Cta() {
   const bannerRef = useRef<HTMLDivElement>(null);
   const active = useMotionActive();
-  const { scrollYProgress } = useScroll({ target: bannerRef, offset: ["start end", "end start"] });
+  const scrollYProgress = useStableScroll(bannerRef, ["start end", "end start"]);
   const imageY = useGated(() => (scrollYProgress.get() - 0.5) * 16, active, 0);
   const imageYPercent = useTransform(imageY, (v) => `${v}%`);
 
