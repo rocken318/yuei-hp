@@ -63,7 +63,6 @@ export function PhilosophyStage({ title, segments }: Props) {
               className="py-1 font-heading text-lg font-bold leading-[1.9] tracking-[0.02em] text-ink sm:text-xl md:text-3xl md:leading-[1.8]"
               lineClassName="mt-2 first:mt-0 md:mt-4"
               wordClassName="inline-block"
-              restOpacity={0.14}
             />
           </div>
         )}
