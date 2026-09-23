@@ -1,0 +1,9 @@
+{
+  "id": "test-texture",
+  "purpose": "パイプライン動作確認用の抽象テクスチャ",
+  "page": "none",
+  "aspect": "1:1",
+  "size": "1024x1024",
+  "prompt": "Abstract soft gradient of translucent blue glass squares floating upward over white",
+  "variants": 1
+}
