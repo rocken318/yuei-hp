@@ -1,17 +1,19 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { content, isVenueBusiness, type Venue } from "@/lib/content";
-import { venueBusinessSlugs } from "@/lib/content/schema";
+import { content, isVenueBusiness, venueBusinessSlugs, type Venue } from "@/lib/content";
 import { InfoTable, type InfoRow } from "@/components/page/info-table";
 import { SwipeGallery } from "@/components/page/swipe-gallery";
 import { VenueSwipeList } from "@/components/page/venue-swipe-list";
 import { Reveal } from "@/components/effects/reveal";
 import { SectionEyebrow } from "@/components/sections/home/section-eyebrow";
 import { VenueHero } from "@/components/sections/venue/venue-hero";
+import { venueGallery } from "@/lib/page/gallery";
 import { visibleInfoRows } from "@/lib/page/info-rows";
+import { paragraphs } from "@/lib/page/text";
 
 export const dynamicParams = false;
 
@@ -20,8 +22,10 @@ export async function generateStaticParams() {
   return lists.flat().map((v) => ({ business: v.business, venue: v.slug }));
 }
 
-async function load(params: PageProps<"/business/[business]/[venue]">["params"]) {
-  const { business: businessSlug, venue: venueSlug } = await params;
+type Props = PageProps<"/business/[business]/[venue]">;
+
+/** Page data, memoized per request (shared by generateMetadata and the page). */
+const load = cache(async (businessSlug: string, venueSlug: string) => {
   if (!isVenueBusiness(businessSlug)) notFound();
   const [business, venue, venues] = await Promise.all([
     content.getBusiness(businessSlug),
@@ -30,19 +34,12 @@ async function load(params: PageProps<"/business/[business]/[venue]">["params"])
   ]);
   if (!business || !venue) notFound();
   return { business, venue, others: venues.filter((v) => v.slug !== venue.slug) };
-}
+});
 
-export async function generateMetadata({ params }: PageProps<"/business/[business]/[venue]">): Promise<Metadata> {
-  const { venue } = await load(params);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { business: businessSlug, venue: venueSlug } = await params;
+  const { venue } = await load(businessSlug, venueSlug);
   return { title: venue.name, description: venue.catchcopy };
-}
-
-/** Plain paragraphs from the MDX body (blank-line separated). */
-function paragraphs(body: string): string[] {
-  return body
-    .split(/\r?\n\s*\r?\n/)
-    .map((p) => p.replace(/\s*\r?\n\s*/g, " ").trim())
-    .filter(Boolean);
 }
 
 function infoRows(venue: Venue): InfoRow[] {
@@ -87,22 +84,24 @@ function externalLinks(venue: Venue): { label: string; href: string }[] {
   return links.filter((l): l is { label: string; href: string } => Boolean(l.href));
 }
 
-export default async function VenuePage({ params }: PageProps<"/business/[business]/[venue]">) {
-  const { business, venue, others } = await load(params);
+export default async function VenuePage({ params }: Props) {
+  const { business: businessSlug, venue: venueSlug } = await params;
+  const { business, venue, others } = await load(businessSlug, venueSlug);
   const signage = venue.kind === "signage";
   const body = paragraphs(venue.body);
   const rows = infoRows(venue);
   const hasInfo = visibleInfoRows(rows).length > 0;
   const links = externalLinks(venue);
-  const gallery = venue.gallery.map((src, i) => ({ src, alt: `${venue.name} の写真 ${i + 1}` }));
-  // A lone gallery photo that is also the hero adds nothing: skip the section.
-  const showGallery = gallery.length >= 2 || (gallery.length === 1 && gallery[0].src !== venue.heroImage);
+  // The hero photo is already shown full-bleed; the gallery holds the rest
+  // (2+ → swipe gallery, 1 → one wide photo, none → no section).
+  const gallery = venueGallery(venue.gallery, venue.heroImage, venue.name);
   const businessHref = `/business/${business.slug}`;
 
   return (
     <>
       <VenueHero
         name={venue.name}
+        titleDisplay={venue.titleDisplay}
         nameEn={venue.nameEn}
         category={venue.category}
         catchcopy={venue.catchcopy}
@@ -143,7 +142,7 @@ export default async function VenuePage({ params }: PageProps<"/business/[busine
         </div>
 
         {/* Gallery */}
-        {showGallery && (
+        {gallery.length > 0 && (
           <div className="mx-auto mt-16 max-w-7xl px-5 md:mt-24 md:px-8">
             <div className="mb-6 flex items-end justify-between md:mb-8">
               <p className="font-display text-xs tracking-[0.3em] text-brand-blue">GALLERY</p>

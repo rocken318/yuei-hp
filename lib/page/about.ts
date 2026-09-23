@@ -1,5 +1,8 @@
 /** Pure helpers for the /about page (app/about, components/sections/about). */
 
+import type { Company } from "@/lib/content/schema";
+import { showDrafts } from "@/lib/draft";
+
 /**
  * Philosophy body lines shown under the heading. The body repeats the title
  * as its first line (it doubles as the home message), so a leading line equal
@@ -14,18 +17,31 @@ export function philosophyBody(philosophy: { title: string; body: string }): str
   return lines.join("\n");
 }
 
-/** Greeting body ("\n\n"-separated paragraphs) → trimmed, non-empty paragraphs. */
-export function paragraphs(body: string): string[] {
-  return body
-    .split(/\n\s*\n/u)
-    .map((p) => p.trim())
-    .filter(Boolean);
-}
-
 /** Whether the greeting is rendered: always when final, drafts only where drafts are shown. */
 export function shouldShowGreeting(greeting: { draft: boolean } | undefined, drafts: boolean): boolean {
   if (!greeting) return false;
   return !greeting.draft || drafts;
+}
+
+export type AboutSection = "philosophy" | "greeting" | "profile" | "history" | "access" | "cta";
+
+/**
+ * Sections /about renders, in order. Optional content drops its section; a
+ * draft greeting is left out where drafts are hidden (production, see
+ * lib/draft.ts) so it never reaches the live site.
+ */
+export function aboutSections(
+  company: Pick<Company, "philosophy" | "greeting" | "history" | "address">,
+  env: Record<string, string | undefined> = process.env,
+): AboutSection[] {
+  const sections: AboutSection[] = [];
+  if (company.philosophy) sections.push("philosophy");
+  if (shouldShowGreeting(company.greeting, showDrafts(env))) sections.push("greeting");
+  sections.push("profile");
+  if ((company.history ?? []).length > 0) sections.push("history");
+  if (company.address) sections.push("access");
+  sections.push("cta");
+  return sections;
 }
 
 export type SummaryItem = { label: string; href?: string };

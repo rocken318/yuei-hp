@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/effects/reveal";
 import { DraftBadge } from "@/components/page/draft-badge";
-import { paragraphs } from "@/lib/page/about";
+import { paragraphs } from "@/lib/page/text";
 import { SectionHeading } from "./section-heading";
 
 type Props = {

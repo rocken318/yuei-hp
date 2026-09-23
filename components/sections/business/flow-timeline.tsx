@@ -39,7 +39,7 @@ export function FlowTimeline({ steps }: Props) {
               制作の流れ
             </h2>
             <p className="mt-5 max-w-md text-sm leading-[2] text-ink-muted [word-break:auto-phrase] md:mt-6 md:text-base">
-              ご相談から公開後の運用まで、ひとつのチームが一貫して担当します。
+              ご相談から公開後の運用まで、一貫してサポートします。
             </p>
           </Reveal>
         </div>

@@ -2,7 +2,7 @@
 
 import { useCallback, useId, useState, type UIEvent } from "react";
 import { Reveal } from "@/components/effects/reveal";
-import { snapIndex } from "@/lib/page/gallery";
+import { snapIndex, stepOf } from "@/lib/page/gallery";
 import { cn, pad2 } from "@/lib/utils";
 import { VenueCard, type VenueCardProps } from "./venue-card";
 
@@ -34,9 +34,8 @@ export function VenueSwipeList({ venues, label, columns = 3, tone = "default" }:
   const onScroll = useCallback(
     (e: UIEvent<HTMLUListElement>) => {
       const el = e.currentTarget;
-      const first = el.firstElementChild as HTMLElement | null;
-      if (!first) return;
-      const step = first.offsetWidth + parseFloat(getComputedStyle(el).columnGap || "0");
+      const step = stepOf(el);
+      if (step === 0) return;
       setIndex(snapIndex({ scrollLeft: el.scrollLeft, maxScroll: el.scrollWidth - el.clientWidth, step, count: venues.length }));
     },
     [venues.length],

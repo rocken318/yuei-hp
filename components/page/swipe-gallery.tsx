@@ -1,19 +1,20 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import {
   useCallback,
   useEffect,
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent,
   type PointerEvent,
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useLenis } from "lenis/react";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
-import { clampIndex, snapIndex, swipeDirection } from "@/lib/page/gallery";
+import { clampIndex, snapIndex, stepOf, swipeDirection } from "@/lib/page/gallery";
 import { duration, ease } from "@/lib/motion";
 import { cn, pad2 } from "@/lib/utils";
 
@@ -26,21 +27,20 @@ type Props = {
 };
 
 const THUMB_SIZES = "(min-width: 1024px) 34rem, (min-width: 768px) 60vw, 84vw";
-
-/** Distance between neighbouring items of a flex/grid row (width + gap). */
-function stepOf(row: HTMLElement): number {
-  const first = row.firstElementChild as HTMLElement | null;
-  if (!first) return 0;
-  return first.offsetWidth + parseFloat(getComputedStyle(row).columnGap || "0");
-}
+/** Lightbox image sizes (also used to warm up the neighbouring photos). */
+const LIGHTBOX_SIZES = "100vw";
 
 /**
  * Photo gallery: a horizontal scroll-snap row (phones: the next photo peeks
  * in; md+: larger photos with previous/next buttons) and an "01 / 12"
  * counter. Tapping/clicking a photo opens it in a lightbox (native modal
- * <dialog>: the page behind is inert, Esc closes, focus returns to the
- * photo) with buttons, ←/→ keys and horizontal swipes to move between
- * photos. Reduced motion: no smooth scrolling and no image transitions.
+ * <dialog>: the page behind is inert) with buttons, ←/→ keys and horizontal
+ * swipes to move between photos; the previous/next photos are fetched ahead.
+ * Esc, the close button or a tap on the stage (not on its buttons) closes it,
+ * and focus returns to the row item of the photo shown LAST (open the 1st,
+ * move to the 2nd, close → the 2nd item is focused and scrolled into view),
+ * so keyboard users continue where they left off.
+ * Reduced motion: no smooth scrolling and no image transitions.
  */
 export function SwipeGallery({ images, label }: Props) {
   const reduced = useReducedMotion() ?? false;
@@ -49,6 +49,8 @@ export function SwipeGallery({ images, label }: Props) {
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+  /** Set by a swipe so the click that may follow it doesn't close the lightbox. */
+  const swiped = useRef(false);
   /** Item a button-triggered smooth scroll is heading for (so rapid clicks add up). */
   const pendingTarget = useRef<number | null>(null);
   const count = images.length;
@@ -117,10 +119,26 @@ export function SwipeGallery({ images, label }: Props) {
     };
   }, [isOpen, lenis]);
 
+  // Warm up the previous/next photos at the lightbox size (same srcset/sizes
+  // as the <Image> below, so the browser picks the same candidate) so moving
+  // on shows them without a blank frame.
+  useEffect(() => {
+    if (open === null) return;
+    for (const i of [open - 1, open + 1]) {
+      const img = images[i];
+      if (!img) continue;
+      const { props } = getImageProps({ src: img.src, alt: "", fill: true, sizes: LIGHTBOX_SIZES });
+      const warm = new window.Image();
+      if (props.sizes) warm.sizes = props.sizes;
+      if (props.srcSet) warm.srcset = props.srcSet;
+      warm.src = props.src;
+    }
+  }, [open, images]);
+
   const close = () => dialogRef.current?.close();
 
-  // The dialog's "close" event (Esc, close button, backdrop click) is the one
-  // place the state resets and focus returns to the photo last shown.
+  // The dialog's "close" event (Esc, the close button, a tap on the stage) is the one place the state resets and focus returns to the row
+  // item of the photo shown last (not necessarily the one first opened).
   const onDialogClose = () => {
     const last = open;
     setOpen(null);
@@ -142,13 +160,25 @@ export function SwipeGallery({ images, label }: Props) {
 
   const onPointerDown = (e: PointerEvent) => {
     swipeStart.current = { x: e.clientX, y: e.clientY };
+    swiped.current = false;
   };
   const onPointerUp = (e: PointerEvent) => {
     const start = swipeStart.current;
     swipeStart.current = null;
     if (!start) return;
     const d = swipeDirection(e.clientX - start.x, e.clientY - start.y);
+    swiped.current = d !== 0;
     if (d !== 0) go(d);
+  };
+  // A tap that lands on the stage itself closes the lightbox — anywhere but
+  // the prev/next buttons, since the photo layer is pointer-events-none —
+  // unless the tap ended a swipe.
+  const onStageClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (swiped.current) {
+      swiped.current = false;
+      return;
+    }
+    if (e.target === e.currentTarget) close();
   };
 
   if (count === 0) return null;
@@ -222,7 +252,7 @@ export function SwipeGallery({ images, label }: Props) {
         aria-label={`${label}（拡大表示）`}
         onClose={onDialogClose}
         onKeyDown={onKeyDown}
-        className="m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden bg-brand-navy p-0 text-surface backdrop:bg-brand-navy/80 open:flex open:flex-col"
+        className="fixed inset-0 m-0 size-full max-h-none max-w-none overflow-hidden bg-brand-navy p-0 text-surface backdrop:bg-brand-navy/80 open:flex open:flex-col"
       >
         {shown && open !== null && (
           <>
@@ -245,6 +275,7 @@ export function SwipeGallery({ images, label }: Props) {
               className="relative flex-1 touch-pan-y select-none overflow-hidden"
               onPointerDown={onPointerDown}
               onPointerUp={onPointerUp}
+              onClick={onStageClick}
               onPointerCancel={() => {
                 swipeStart.current = null;
               }}
@@ -258,7 +289,7 @@ export function SwipeGallery({ images, label }: Props) {
                   exit={{ opacity: 0, x: -dir * offset }}
                   transition={{ duration: reduced ? 0 : duration.fast, ease: ease.out }}
                 >
-                  <Image src={shown.src} alt={shown.alt} fill sizes="100vw" className="object-contain" />
+                  <Image src={shown.src} alt={shown.alt} fill sizes={LIGHTBOX_SIZES} className="object-contain" />
                 </motion.div>
               </AnimatePresence>
 

@@ -142,6 +142,9 @@
     color: var(--color-ink);
     background: var(--color-surface);
     -webkit-font-smoothing: antialiased;
+    /* Reserve the scrollbar's space so locking the scroll (lightbox, menu)
+       doesn't shift the layout on desktop. */
+    scrollbar-gutter: stable;
     /* Keep anchor targets clear of the fixed header (h-16 / md:h-20). */
     scroll-padding-top: --spacing(16);
     @variant md {

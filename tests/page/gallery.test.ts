@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { clampIndex, snapIndex, swipeDirection } from "@/lib/page/gallery";
+import { clampIndex, snapIndex, swipeDirection, venueGallery } from "@/lib/page/gallery";
 
 describe("clampIndex", () => {
   it("0..count-1 に収める", () => {
@@ -35,5 +35,23 @@ describe("swipeDirection", () => {
   it("短い・縦方向が大きい動きは無視", () => {
     expect(swipeDirection(-20, 0)).toBe(0);
     expect(swipeDirection(-60, 90)).toBe(0);
+  });
+});
+
+describe("venueGallery", () => {
+  it("ヒーロー写真を除き、残りに通し番号の alt を付ける", () => {
+    expect(venueGallery(["/a.webp", "/b.webp", "/c.webp"], "/a.webp", "店")).toEqual([
+      { src: "/b.webp", alt: "店 の写真 1" },
+      { src: "/c.webp", alt: "店 の写真 2" },
+    ]);
+  });
+
+  it("ヒーローが無い・含まれないときはそのまま", () => {
+    expect(venueGallery(["/a.webp"], undefined, "店")).toEqual([{ src: "/a.webp", alt: "店 の写真 1" }]);
+    expect(venueGallery(["/a.webp"], "/x.webp", "店")).toHaveLength(1);
+  });
+
+  it("ヒーローだけの gallery は空になる", () => {
+    expect(venueGallery(["/a.webp"], "/a.webp", "店")).toEqual([]);
   });
 });

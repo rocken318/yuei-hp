@@ -6,6 +6,7 @@ import { motion, useScroll, useTransform, type MotionValue } from "motion/react"
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/effects/reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { stepOf } from "@/lib/page/gallery";
 import { cn, pad2 } from "@/lib/utils";
 import { VenueCard } from "@/components/page/venue-card";
 import { SectionEyebrow } from "./section-eyebrow";
@@ -55,9 +56,8 @@ export function Signage({ venues }: Props) {
     (e: UIEvent<HTMLUListElement>) => {
       const el = e.currentTarget;
       if (el.scrollWidth <= el.clientWidth) return;
-      const first = el.firstElementChild as HTMLElement | null;
-      if (!first) return;
-      const step = first.offsetWidth + parseFloat(getComputedStyle(el).columnGap || "0");
+      const step = stepOf(el);
+      if (step === 0) return;
       const i = Math.min(venues.length - 1, Math.max(0, Math.round(el.scrollLeft / step)));
       setSwipeIndex(i);
       setHighlight(venues[i]?.slug ?? null);

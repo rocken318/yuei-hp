@@ -11,6 +11,8 @@ type Props = { src: string; alt: string };
  * PageHeader's wide image. While it passes through the viewport the photo
  * settles from a slight push-in (scale 1.1 → 1) and drifts against the
  * scroll. Server/hydration/reduced motion: static at the mid-pass framing.
+ * Above the fold on every sub-page: loaded eagerly at high fetch priority
+ * (Next 16 docs prefer this over `preload`).
  */
 export function PageHeaderImage({ src, alt }: Props) {
   const ref = useRef<HTMLDivElement>(null);
@@ -30,7 +32,8 @@ export function PageHeaderImage({ src, alt }: Props) {
           src={src}
           alt={alt}
           fill
-          preload
+          loading="eager"
+          fetchPriority="high"
           sizes="(min-width: 80rem) 76rem, calc(100vw - 2.5rem)"
           className="object-cover"
         />

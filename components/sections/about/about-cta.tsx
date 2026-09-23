@@ -4,7 +4,7 @@ import { Reveal } from "@/components/effects/reveal";
 
 const LINKS = [
   { href: "/contact", eyebrow: "CONTACT", label: "お問い合わせ", note: "事業・広告掲載・Web制作のご相談はこちら" },
-  { href: "/recruit", eyebrow: "RECRUIT", label: "採用情報", note: "この街で、一緒に未来をつくる仲間を募集しています" },
+  { href: "/recruit", eyebrow: "RECRUIT", label: "採用情報", note: "採用情報はこちらからご確認ください。" },
 ] as const;
 
 /**

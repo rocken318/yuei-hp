@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   businessSummaryItems,
+  aboutSections,
   googleMapsUrl,
-  paragraphs,
   philosophyBody,
   shouldShowGreeting,
 } from "@/lib/page/about";
@@ -14,12 +14,6 @@ describe("philosophyBody", () => {
 
   it("見出しと違う1行目は残し、空行を除く", () => {
     expect(philosophyBody({ title: "見出し", body: "別の行\n\n  次の行 \n" })).toBe("別の行\n次の行");
-  });
-});
-
-describe("paragraphs", () => {
-  it("空行で段落に分け、空の段落を除く", () => {
-    expect(paragraphs("一段落目\n\n二段落目\n \n\n三段落目\n")).toEqual(["一段落目", "二段落目", "三段落目"]);
   });
 });
 
@@ -55,5 +49,39 @@ describe("googleMapsUrl", () => {
     expect(googleMapsUrl(" 仙台市青葉区国分町2-1-1 ")).toBe(
       "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("仙台市青葉区国分町2-1-1"),
     );
+  });
+});
+
+describe("aboutSections", () => {
+  const company = {
+    philosophy: { title: "理念", body: "本文" },
+    greeting: { title: "ごあいさつ", body: "本文", draft: true },
+    history: [{ date: "2020年", text: "設立" }],
+    address: "仙台市青葉区国分町",
+  };
+
+  it("本番（VERCEL_ENV=production）では下書きの代表挨拶を出さない", () => {
+    expect(aboutSections(company, { VERCEL_ENV: "production" })).toEqual([
+      "philosophy",
+      "profile",
+      "history",
+      "access",
+      "cta",
+    ]);
+  });
+
+  it("プレビュー・ローカルでは下書きも出す", () => {
+    expect(aboutSections(company, { VERCEL_ENV: "preview" })).toContain("greeting");
+    expect(aboutSections(company, {})).toContain("greeting");
+  });
+
+  it("確定稿の代表挨拶は本番でも出す", () => {
+    expect(
+      aboutSections({ ...company, greeting: { ...company.greeting, draft: false } }, { VERCEL_ENV: "production" }),
+    ).toContain("greeting");
+  });
+
+  it("未設定の任意項目のセクションは出さない", () => {
+    expect(aboutSections({}, {})).toEqual(["profile", "cta"]);
   });
 });

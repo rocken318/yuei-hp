@@ -28,3 +28,25 @@ export function swipeDirection(dx: number, dy: number, threshold = SWIPE_THRESHO
   if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy)) return 0;
   return dx < 0 ? 1 : -1;
 }
+
+/**
+ * Distance between neighbouring items of a flex/grid row (first item's width
+ * + the row's column gap); 0 for an empty row.
+ */
+export function stepOf(row: HTMLElement): number {
+  const first = row.firstElementChild as HTMLElement | null;
+  if (!first) return 0;
+  return first.offsetWidth + parseFloat(getComputedStyle(row).columnGap || "0");
+}
+
+/**
+ * Photos for a venue page's gallery: the gallery list without the hero photo
+ * (already shown full-bleed above), numbered alt text in the original order.
+ */
+export function venueGallery(
+  gallery: readonly string[],
+  heroImage: string | undefined,
+  name: string,
+): { src: string; alt: string }[] {
+  return gallery.filter((src) => src !== heroImage).map((src, i) => ({ src, alt: `${name} の写真 ${i + 1}` }));
+}
