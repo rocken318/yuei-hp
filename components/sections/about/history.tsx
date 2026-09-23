@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll } from "motion/react";
+import { motion } from "motion/react";
 import { Reveal } from "@/components/effects/reveal";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { SectionHeading } from "./section-heading";
 
 type Props = { items: { date: string; text: string }[] };
@@ -16,7 +17,7 @@ type Props = { items: { date: string; text: string }[] };
 export function History({ items }: Props) {
   const listRef = useRef<HTMLOListElement>(null);
   const active = useMotionActive();
-  const { scrollYProgress } = useScroll({ target: listRef, offset: ["start 0.7", "end 0.5"] });
+  const scrollYProgress = useStableScroll(listRef, ["start 0.7", "end 0.5"]);
   const fill = useGated(scrollYProgress, active, 1);
 
   return (

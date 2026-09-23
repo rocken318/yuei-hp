@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useTransform } from "motion/react";
 import { Breadcrumbs, type BreadcrumbItem } from "@/components/page/breadcrumbs";
 import { TitleLines } from "@/components/page/title-lines";
 import { titleParts } from "@/components/sections/business/title-parts";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { MARK_PIECES, MARK_VIEWBOX, PILLAR_FACES, type Point } from "@/lib/brand/mark-geometry";
 
 type Props = {
@@ -42,7 +43,7 @@ const toPoints = (pts: readonly Point[]) => pts.map(([x, y]) => `${x},${y}`).joi
 export function VenueHero({ name, titleDisplay, nameEn, category, catchcopy, image, placeholderLabel, breadcrumbs }: Props) {
   const ref = useRef<HTMLElement>(null);
   const active = useMotionActive();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const scrollYProgress = useStableScroll(ref, ["start start", "end start"]);
   const p = useGated(scrollYProgress, active, 0);
 
   const imageScale = useTransform(p, [0, 1], [1.08, 1]);

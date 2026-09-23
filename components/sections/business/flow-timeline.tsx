@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, type MotionValue } from "motion/react";
+import { motion, type MotionValue } from "motion/react";
 import { Reveal } from "@/components/effects/reveal";
 import { SectionEyebrow } from "@/components/sections/home/section-eyebrow";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll } from "@/lib/effects/stable-scroll";
 import { cn, pad2 } from "@/lib/utils";
 
 type Step = { step?: string; title: string; body: string };
@@ -64,15 +65,9 @@ type StepProps = { step: Step; index: number; last: boolean; active: MotionValue
 function FlowStep({ step, index, last, active }: StepProps) {
   const ref = useRef<HTMLLIElement>(null);
   // Marker: grows 0 → 1 as the top of this step approaches the tip line.
-  const { scrollYProgress: markerProgress } = useScroll({
-    target: ref,
-    offset: [`start ${MARKER_FROM}`, `start ${TIP}`],
-  });
+  const markerProgress = useStableScroll(ref, [`start ${MARKER_FROM}`, `start ${TIP}`]);
   // Segment below the marker: fills while this step passes the tip line.
-  const { scrollYProgress: segmentProgress } = useScroll({
-    target: ref,
-    offset: [`start ${TIP}`, `end ${TIP}`],
-  });
+  const segmentProgress = useStableScroll(ref, [`start ${TIP}`, `end ${TIP}`]);
   const reached = useGated(markerProgress, active, 1);
   const fill = useGated(segmentProgress, active, 1);
   const label = step.step ?? pad2(index + 1);

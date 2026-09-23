@@ -2,9 +2,10 @@
 "use client";
 
 import { useRef, type RefObject } from "react";
-import { motion, useScroll, type MotionValue, type UseScrollOptions } from "motion/react";
+import { motion, type MotionValue } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll, type StableScrollOffset } from "@/lib/effects/stable-scroll";
 import {
   getWordOpacity,
   getWordRange,
@@ -42,7 +43,7 @@ export type ScrollWordRevealProps = BaseProps & {
   /** Fallback when no `progress`: track this element in window scroll. */
   target?: RefObject<HTMLElement | null>;
   /** useScroll offset for the fallback (default: while own/target box crosses the viewport). */
-  offset?: UseScrollOptions["offset"];
+  offset?: StableScrollOffset;
 };
 
 type WordProps = {
@@ -82,7 +83,7 @@ function TrackedWordReveal({
   ...rest
 }: BaseProps & Pick<ScrollWordRevealProps, "target" | "offset">) {
   const ownRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: target ?? ownRef, offset });
+  const scrollYProgress = useStableScroll(target ?? ownRef, offset);
   return <WordReveal {...rest} progress={scrollYProgress} ownRef={ownRef} />;
 }
 

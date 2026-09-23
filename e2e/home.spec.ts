@@ -121,4 +121,85 @@ test.describe("home", () => {
       await expect.poll(assembled).toBe(true);
     }
   });
+
+  // iOS Safari: when the user scrolls back up, the toolbar reappears, the
+  // viewport (innerHeight AND documentElement.clientHeight) shrinks by the
+  // toolbar height and a resize event fires — while 100svh and the scroll
+  // position stay put. Scroll-linked scenes must not jump at that moment
+  // (they used to: e.g. message words re-dimmed, card scales and the signage
+  // scan line leapt by ~80px worth of scroll). Emulated here by growing the
+  // reported viewport by 86px ("toolbar hidden") and then restoring it.
+  test("scroll-linked scenes hold still when the iOS toolbar reappears", async ({ page }, info) => {
+    test.skip(info.project.name === "mobile-reduced", "nothing is scroll-linked under reduced motion");
+    await page.addInitScript(() => {
+      const w = window as unknown as { __toolbarHidden: boolean };
+      w.__toolbarHidden = true;
+      const extra = () => (w.__toolbarHidden ? 86 : 0);
+      const ch = Object.getOwnPropertyDescriptor(Element.prototype, "clientHeight")!;
+      Object.defineProperty(Element.prototype, "clientHeight", {
+        configurable: true,
+        get(this: Element) {
+          const v = ch.get!.call(this) as number;
+          return this === document.documentElement ? v + extra() : v;
+        },
+      });
+      let owner: object | null = window;
+      let ih: PropertyDescriptor | undefined;
+      while (owner && !(ih = Object.getOwnPropertyDescriptor(owner, "innerHeight"))) owner = Object.getPrototypeOf(owner);
+      if (ih?.get) {
+        const get = ih.get;
+        Object.defineProperty(window, "innerHeight", { configurable: true, get: () => (get.call(window) as number) + extra() });
+      }
+    });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+    const setToolbarHidden = (hidden: boolean) =>
+      page.evaluate((h) => {
+        (window as unknown as { __toolbarHidden: boolean }).__toolbarHidden = h;
+        window.dispatchEvent(new Event("resize"));
+      }, hidden);
+    const scene = () =>
+      page.evaluate(async () => {
+        // Let motion's frame loop apply pending scroll/resize updates first.
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const words = Array.from(
+          document.querySelectorAll('[data-testid="message"] p > span[aria-hidden] > span'),
+        ).map((el) => Number(getComputedStyle(el).opacity).toFixed(2));
+        const cards = Array.from(document.querySelectorAll('[data-testid="businesses"] .origin-top')).map(
+          (el) => getComputedStyle(el).transform,
+        );
+        const scan = document.querySelector<HTMLElement>('[data-testid="signage"] figure .pointer-events-none')
+          ?.style.top;
+        return JSON.stringify({ words, cards, scan });
+      });
+
+    // Wait until scroll-linked motion is live (after hydration the not yet
+    // reached message words dim), then read a scene only once it has settled.
+    await expect.poll(async () => Math.min(...(await wordOpacities(page)))).toBeLessThan(0.5);
+    const settledScene = async () => {
+      let prev = "";
+      let next = await scene();
+      while (next !== prev) {
+        prev = next;
+        await page.waitForTimeout(150);
+        next = await scene();
+      }
+      return next;
+    };
+
+    // Mid-message, mid-stack and mid-map.
+    for (const [id, offset] of [["message", 300], ["businesses", 1400], ["signage", 200]] as const) {
+      await setToolbarHidden(true);
+      await page.getByTestId(id).evaluate((el, off) => {
+        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY + off);
+      }, offset);
+      const before = await settledScene();
+      const y = await page.evaluate(() => window.scrollY);
+
+      await setToolbarHidden(false);
+      expect(await page.evaluate(() => window.scrollY)).toBe(y);
+      expect(await settledScene(), `${id}+${offset}`).toBe(before);
+    }
+  });
 });

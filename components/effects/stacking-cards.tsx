@@ -1,7 +1,8 @@
 // Source: https://21st.dev/@danielpetho/components/stacking-cards
 // author: Khoa Phan <https://www.pldkhoa.dev>
 // Adapted: window scroll only (no container), reduced-motion keeps cards unscaled,
-// the last card never scales down.
+// the last card never scales down, progress measured against the small viewport
+// (useStableScroll) so the stack doesn't jump when the iOS toolbar reappears.
 
 "use client";
 
@@ -12,22 +13,17 @@ import {
   type HTMLAttributes,
   type PropsWithChildren,
 } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-  type UseScrollOptions,
-} from "motion/react";
+import { motion, useTransform, type MotionValue } from "motion/react";
 
 import { cn } from "@/lib/utils";
 import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { useStableScroll, type StableScrollOffset } from "@/lib/effects/stable-scroll";
 
 export interface StackingCardsProps
   extends PropsWithChildren,
     HTMLAttributes<HTMLDivElement> {
-  /** Extra useScroll options (target is always this element; window scroll). */
-  scrollOptions?: Omit<UseScrollOptions, "container" | "target">;
+  /** Scroll offset of this element (window scroll). Default: pinned span, ["start start", "end end"]. */
+  offset?: StableScrollOffset;
   scaleMultiplier?: number;
   totalCards: number;
 }
@@ -55,17 +51,13 @@ export function useStackingCardsContext() {
 export default function StackingCards({
   children,
   className,
-  scrollOptions,
+  offset = ["start start", "end end"],
   scaleMultiplier,
   totalCards,
   ...props
 }: StackingCardsProps) {
   const targetRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    offset: ["start start", "end end"],
-    ...scrollOptions,
-    target: targetRef,
-  });
+  const scrollYProgress = useStableScroll(targetRef, offset);
   const active = useMotionActive();
 
   return (

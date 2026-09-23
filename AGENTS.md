@@ -26,6 +26,7 @@ Claude と Codex の両方がこのファイルに従う。設計書: docs/super
 - ホバー依存の演出には、モバイル（タッチ）用の代替演出を必ず用意する。
 - コンテンツは `lib/content.ts` 経由でのみ読む。ページから `content/` を直接 import しない。
 - 事実情報（住所・営業時間・電話番号など）を推測で書かない。不明なら空欄のままにする。
+- 要素に紐づくスクロール進捗は `useStableScroll(ref, offset)`（`lib/effects/stable-scroll.ts`）を使い、`useScroll({ target })` は使わない。motion の useScroll はビューポート高さに `documentElement.clientHeight` を使うため、iOS Safari でツールバーが出入りすると（上スクロール時など）進捗が一気に跳ぶ。useStableScroll は 100svh 基準で測る。
 - `MotionConfig reducedMotion="user"` はアニメーション（animate/whileInView/variants）にのみ効く。`useScroll`/`useTransform` などスクロール連動の値は各コンポーネントで `useReducedMotion()` を見て静止させること。
 
 ## 配置
