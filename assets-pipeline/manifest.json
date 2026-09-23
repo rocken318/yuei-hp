@@ -6,5 +6,13 @@
     "briefHash": "250881106faeb280bc963c5e179ef7ec963c4d5c299b6ef60a628a39bd6e1b8a",
     "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
     "adoptedAt": "2026-09-23T13:45:03.999Z"
+  },
+  {
+    "id": "mood-b-city",
+    "variant": "v2",
+    "output": "public/images/generated/mood-b-city.webp",
+    "briefHash": "5dafd66668456ba6cbb7747a046ca5d3fe03545c3b431ca2b9560e1492601bcb",
+    "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
+    "adoptedAt": "2026-09-23T13:48:09.864Z"
   }
 ]
