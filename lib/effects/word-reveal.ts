@@ -4,7 +4,8 @@
  * (getWordRange / getWordOpacity), plus Japanese segmentation.
  */
 
-export const REST_OPACITY = 0.15;
+/** Unrevealed words stay readable (dim, not ghosted) over the message veil. */
+export const REST_OPACITY = 0.3;
 /** Portion of the progress range over which word start points are spread. */
 export const REVEAL_SPAN = 0.8;
 /** Progress length it takes one word to go from rest to full opacity. */

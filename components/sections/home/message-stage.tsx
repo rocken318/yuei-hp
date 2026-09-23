@@ -54,9 +54,13 @@ export function MessageStage({ segments }: Props) {
       ref={sectionRef}
       data-testid="message"
       aria-labelledby="message-heading"
-      // Overlaps the last 30svh of the hero's pinned track so the city
-      // crossfades in over the hero instead of after a blank gap.
-      className="relative z-10 -mt-[30svh] h-[200svh] md:h-[250svh] motion-reduce:mt-0 motion-reduce:h-svh md:motion-reduce:h-svh"
+      // md+: overlaps the last 30svh of the hero's pinned track so the city
+      // crossfades in over the hero instead of after a blank gap (the hero
+      // copy sits mid-left there, clear of the rising edge). Phones: no
+      // overlap — the hero headline sits low in the stage, exactly where the
+      // overlap's white leading edge would wash over it, so the hero scrolls
+      // off first and the city fades in beneath it afterwards.
+      className="relative z-10 h-[200svh] md:-mt-[30svh] md:h-[250svh] motion-reduce:mt-0 motion-reduce:h-svh md:motion-reduce:h-svh"
     >
       <div className="sticky top-0 h-svh overflow-hidden">
         <motion.div
@@ -73,16 +77,19 @@ export function MessageStage({ segments }: Props) {
           />
         </motion.div>
 
-        {/* White veil: keeps ink text at AA contrast over the high-key city. */}
+        {/* White veil: keeps ink text at AA contrast over the high-key city,
+            also for the right end of the long lines on desktop. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-b from-surface/85 via-surface/70 to-surface/90 md:bg-gradient-to-r md:from-surface/90 md:via-surface/72 md:to-surface/25"
+          className="absolute inset-0 bg-gradient-to-b from-surface/85 via-surface/78 to-surface/90 md:bg-gradient-to-r md:from-surface/92 md:from-10% md:via-surface/80 md:via-55% md:to-surface/30"
         />
 
-        {/* Soft edges: top while arriving from the hero, bottom on the way out. */}
+        {/* Soft edges: top while arriving from the hero, bottom on the way out.
+            The top edge stays above the text column (phones: a short band
+            under the header; the copy is vertically centred below it). */}
         <motion.div
           aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-1/3 bg-linear-to-b from-surface to-transparent"
+          className="absolute inset-x-0 top-0 h-20 md:h-1/3 bg-linear-to-b from-surface to-transparent"
           style={{ opacity: edgeFade }}
         />
         <div
@@ -117,8 +124,7 @@ export function MessageStage({ segments }: Props) {
                 className="mt-5 max-w-[18em] font-heading text-[1.375rem] leading-[1.75] font-bold tracking-[0.02em] text-ink sm:text-3xl md:tracking-[0.04em] md:mt-7 md:text-5xl md:leading-[1.55]"
                 lineClassName="mt-3 md:mt-5"
                 wordClassName="inline-block"
-                restOpacity={0.14}
-              />
+                              />
 
               <p className="mt-10 font-display text-[0.7rem] tracking-[0.3em] text-ink-muted md:mt-14 md:text-xs">
                 KOKUBUNCHO, SENDAI
