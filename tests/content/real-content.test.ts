@@ -18,4 +18,13 @@ describe("content/ の実データ", () => {
       expect(existsSync(path.join(process.cwd(), "public", b.heroImage!)), b.heroImage).toBe(true);
     }
   });
+  it("拠点の heroImage（設定されていれば）が public/ に実在する", async () => {
+    for (const business of ["nightlife", "dining", "signage"] as const) {
+      for (const v of await content.getVenues(business)) {
+        if (!v.heroImage) continue;
+        expect(v.heroImage, `${business}/${v.slug}`).toMatch(/^\/images\/.+\.webp$/);
+        expect(existsSync(path.join(process.cwd(), "public", v.heroImage)), v.heroImage).toBe(true);
+      }
+    }
+  });
 });

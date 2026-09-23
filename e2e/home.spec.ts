@@ -1,17 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
+import { watchErrors } from "./errors";
 
 const SECTIONS = ["hero", "message", "businesses", "marquee", "signage", "numbers", "cta"] as const;
-
-// Later plans add /about, /business, … — Link prefetch 404s for them are
-// expected for now (see smoke.spec.ts). Anything else is a real error.
-const isExpected404 = (text: string) => /Failed to load resource.*404/.test(text);
-
-function collectErrors(page: Page) {
-  const errors: string[] = [];
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
-  page.on("pageerror", (e) => errors.push(e.message));
-  return () => errors.filter((e) => !isExpected404(e));
-}
 
 /**
  * Scrolls to the bottom in ~1/3-viewport steps, pausing briefly after each,
@@ -44,7 +34,7 @@ const wordOpacities = (page: Page) =>
 
 test.describe("home", () => {
   test("scrolling through shows every section, in order, without console errors", async ({ page }, info) => {
-    const unexpectedErrors = collectErrors(page);
+    const unexpectedErrors = watchErrors(page);
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
@@ -64,6 +54,8 @@ test.describe("home", () => {
 
     const seen = await scrollThrough(page);
     expect([...seen].sort()).toEqual([...SECTIONS].sort());
+    // scrollThrough ends at the bottom of the page: the CTA is on screen.
+    await expect(page.getByTestId("cta")).toBeInViewport();
 
     // Having scrolled past it, every message word is fully revealed.
     await expect.poll(async () => Math.min(...(await wordOpacities(page)))).toBe(1);
@@ -74,7 +66,6 @@ test.describe("home", () => {
     await expect(numbers.locator("[data-ticker-count]").first()).toHaveText("4");
 
     for (const id of SECTIONS) await expect(page.getByTestId(id)).toBeVisible();
-    await expect(page.getByTestId("cta")).toBeInViewport();
 
     expect(unexpectedErrors()).toEqual([]);
   });
