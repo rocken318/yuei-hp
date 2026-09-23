@@ -23,7 +23,12 @@ export function Cta() {
   const bannerRef = useRef<HTMLDivElement>(null);
   const active = useMotionActive();
   const { scrollYProgress } = useScroll({ target: bannerRef, offset: ["start end", "end start"] });
-  const imageY = useTransform(() => (active.get() ? (scrollYProgress.get() - 0.5) * 16 : 0));
+  // Read the source before branching: computed values only subscribe to what
+  // they read on their first run (when `active` is still 0).
+  const imageY = useTransform(() => {
+    const v = scrollYProgress.get();
+    return active.get() ? (v - 0.5) * 16 : 0;
+  });
   const imageYPercent = useTransform(imageY, (v) => `${v}%`);
 
   return (

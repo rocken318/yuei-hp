@@ -46,7 +46,11 @@ export function Signage({ venues }: Props) {
   const active = useMotionActive();
   const { scrollYProgress } = useScroll({ target: mapRef, offset: ["start 85%", "end 45%"] });
   // Server/hydration/reduced motion: 1 (= every pin lit, scan finished).
-  const p = useTransform(() => (active.get() ? scrollYProgress.get() : 1));
+  // Read the source before branching (see cta.tsx / logo-assemble.tsx).
+  const p = useTransform(() => {
+    const v = scrollYProgress.get();
+    return active.get() ? v : 1;
+  });
   const scanTop = useTransform(p, [0, 0.9], ["0%", "100%"]);
   const scanOpacity = useTransform(p, [0, 0.06, 0.8, 0.92], [0, 1, 1, 0]);
 
