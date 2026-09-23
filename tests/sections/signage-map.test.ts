@@ -43,6 +43,11 @@ describe("signage map geometry", () => {
     expect(bansui.y).toBeLessThan(MAP_VIEWBOX.height);
   });
 
+  it("puts ピース on the same row as 千松島 and エーラク", () => {
+    expect(peace.y).toBe(chimatsushima.y);
+    expect(eiraku.y).toBe(chimatsushima.y);
+  });
+
   it("falls back to a spare spot for an unknown venue", () => {
     const p = pinFor("unknown", 0);
     expect(p.x).toBeGreaterThan(0);

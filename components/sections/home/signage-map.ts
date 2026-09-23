@@ -5,7 +5,10 @@
  *
  *   定禅寺通り (left, vertical) · 広瀬通り (right, vertical)
  *   国分町通り (main, horizontal, upper-middle) · 晩翠通り (horizontal, lower)
- *   Pins sit above 国分町通り, except 晩翠通り's vision just below 晩翠通り.
+ *   The three 国分町通り pins share one row just above the street (same y);
+ *   晩翠通り's vision sits just below 晩翠通り. On that row the middle pin's
+ *   label is "raised" (a second label row, joined by a leader line) so the
+ *   three names never collide, even on a 390px phone.
  */
 
 export const MAP_VIEWBOX = { width: 400, height: 300 } as const;
@@ -48,17 +51,19 @@ export const STREET_LABELS: { id: keyof typeof STREETS; x: number; y: number }[]
   { id: "bansui", x: 262, y: STREETS.bansui.at },
 ];
 
-export type PinSide = "above" | "right" | "below";
+export type PinSide = "above" | "raised" | "right" | "below";
 export type MapPin = { x: number; y: number; side: PinSide };
 
 const span = STREETS.hirose.at - STREETS.jozenji.at;
 const chimatsushimaX = STREETS.jozenji.at + span * 0.2;
+/** The 国分町通り row: just above the street. */
+const kokubunchoRowY = STREETS.kokubuncho.at - 20;
 
 /** Pin per venue slug (viewBox units). `side` is where the name label goes. */
 export const MAP_PINS: Record<string, MapPin> = {
-  chimatsushima: { x: chimatsushimaX, y: 120, side: "above" },
-  peace: { x: STREETS.jozenji.at + span * 0.5, y: 72, side: "above" },
-  eiraku: { x: STREETS.hirose.at - 20, y: 120, side: "above" },
+  chimatsushima: { x: chimatsushimaX, y: kokubunchoRowY, side: "above" },
+  peace: { x: STREETS.jozenji.at + span * 0.5, y: kokubunchoRowY, side: "raised" },
+  eiraku: { x: STREETS.hirose.at - 20, y: kokubunchoRowY, side: "above" },
   bansui: { x: chimatsushimaX, y: STREETS.bansui.at + 22, side: "right" },
 };
 

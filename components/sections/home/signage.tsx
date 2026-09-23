@@ -306,7 +306,13 @@ const LABEL_SIDE = {
   // The wrapper is as tall as the pin (its centre is the wrapper top), hence
   // the larger offset: ~8px clear of the pin.
   above: "bottom-8 left-0 -translate-x-1/2 md:bottom-10",
+  // A second row above "above" labels, for a pin between two neighbours on
+  // the same street (see signage-map). Joined to the pin by LEADER.
+  raised: "bottom-16 left-0 -translate-x-1/2 md:bottom-[4.5rem] lg:bottom-20",
 } as const;
+
+/** Leader line from the pin's top edge up to a "raised" label. */
+const LEADER = "bottom-6 h-10 md:bottom-[1.875rem] md:h-[2.625rem] lg:h-[3.125rem]";
 
 type PinProps = {
   venue: SignageVenue;
@@ -353,6 +359,12 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
           />
         </motion.span>
       </motion.div>
+      {pos.side === "raised" && (
+        <motion.span
+          className={cn("absolute left-0 w-px -translate-x-1/2 bg-brand-sky/50", LEADER)}
+          style={{ opacity: dim }}
+        />
+      )}
       <motion.span
         className={cn(
           "absolute flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[0.6875rem] font-bold transition-colors duration-hover lg:px-3 lg:py-1.5 lg:text-sm",
