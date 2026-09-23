@@ -12,28 +12,23 @@ import { cn, pad2 } from "@/lib/utils";
 import { VenueCard } from "@/components/page/venue-card";
 import { SectionEyebrow } from "./section-eyebrow";
 import type { Venue } from "@/lib/content/schema";
+import {
+  ALL_STREETS,
+  MAP_HEADER,
+  MAP_VIEWBOX,
+  STREETS,
+  STREET_LABELS,
+  pctX,
+  pctY,
+  pinFor,
+} from "./signage-map";
 
 export type SignageVenue = Pick<Venue, "slug" | "name" | "catchcopy" | "heroImage">;
 
 type Props = { venues: SignageVenue[] };
 
 /**
- * Illustrative pin positions on the abstract map (percent of the map box),
- * by venue order. NOT real geography — the map is labelled as an image.
- */
-const PIN_POSITIONS: { x: number; y: number; side: "right" | "below" }[] = [
-  { x: 20, y: 23.3, side: "right" },
-  { x: 47.5, y: 50, side: "right" },
-  { x: 80, y: 23.3, side: "below" },
-  { x: 62.5, y: 76.7, side: "right" },
-];
-
-/** Street lines of the abstract map (viewBox 400×300), edges included. */
-const STREET_X = [0, 80, 140, 190, 250, 320, 400];
-const STREET_Y = [0, 70, 150, 230, 300];
-
-/**
- * Home §5 — 遊栄ビジョン. An abstract district map whose pins light up one by
+ * Home §5 — 遊栄ビジョン. A sketch map of the district (geometry in ./signage-map) whose pins light up one by
  * one as the map scrolls through the viewport (scroll-linked, so it follows
  * native touch scrolling too), plus venue cards that swipe horizontally on
  * phones (CSS scroll-snap) and sit in a 4-column grid on desktop.
@@ -180,6 +175,86 @@ function CtaButtons() {
   );
 }
 
+const { width: W, height: H } = MAP_VIEWBOX;
+const X_EDGES = [0, ...ALL_STREETS.filter((s) => s.axis === "x").map((s) => s.at), W].sort((a, b) => a - b);
+const Y_EDGES = [MAP_HEADER, ...ALL_STREETS.filter((s) => s.axis === "y").map((s) => s.at), H].sort((a, b) => a - b);
+
+const streetPath = (axis: "x" | "y", at: number) => (axis === "x" ? `M${at} ${MAP_HEADER}V${H}` : `M0 ${at}H${W}`);
+
+/** Grid, city blocks and streets (decorative SVG, stretched to the 4:3 box). */
+function StreetGrid() {
+  return (
+    <svg aria-hidden viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 size-full">
+      <defs>
+        <pattern id="signage-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M20 0H0V20" fill="none" className="stroke-surface/[0.05]" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width={W} height={H} fill="url(#signage-grid)" />
+      {/* City blocks between the streets. */}
+      <g className="fill-surface/[0.035]">
+        {X_EDGES.slice(1).flatMap((x, xi) =>
+          Y_EDGES.slice(1).map((y, yi) => {
+            const x0 = X_EDGES[xi];
+            const y0 = Y_EDGES[yi];
+            return <rect key={`${xi}-${yi}`} x={x0 + 7} y={y0 + 7} width={x - x0 - 14} height={y - y0 - 14} rx="4" />;
+          }),
+        )}
+      </g>
+      {/* Side streets. */}
+      <g className="stroke-surface/15" strokeWidth="1.5" fill="none">
+        {ALL_STREETS.filter((s) => s.weight === "minor").map((s) => (
+          <path key={s.id} d={streetPath(s.axis, s.at)} />
+        ))}
+      </g>
+      {/* Avenues. */}
+      <g className="stroke-brand-sky/35" strokeWidth="4" fill="none" strokeLinecap="round">
+        {ALL_STREETS.filter((s) => s.weight === "major").map((s) => (
+          <path key={s.id} d={streetPath(s.axis, s.at)} />
+        ))}
+      </g>
+      {/* 国分町通り — the main street. */}
+      <path
+        d={streetPath(STREETS.kokubuncho.axis, STREETS.kokubuncho.at)}
+        className="stroke-brand-sky/70"
+        strokeWidth="6"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+/** Street names (HTML so the text stays crisp and unstretched). */
+function StreetLabels() {
+  return (
+    <>
+      <p
+        className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-display text-[0.5625rem] tracking-[0.3em] text-surface/45 md:text-[0.625rem]"
+        style={{ top: pctY(MAP_HEADER / 2) }}
+      >
+        KOKUBUNCHO AREA
+      </p>
+      {STREET_LABELS.map(({ id, x, y }) => {
+        const street = STREETS[id];
+        const main = street.weight === "main";
+        return (
+          <p
+            key={id}
+            className={cn(
+              "absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[0.5625rem] leading-none tracking-[0.12em] md:text-[0.6875rem]",
+              street.axis === "y" && "rounded-sm bg-brand-navy px-1.5 py-1",
+              main ? "font-bold text-brand-sky" : "text-surface/70",
+            )}
+            style={{ left: pctX(x), top: pctY(y) }}
+          >
+            {street.label}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
 type MapProps = {
   venues: SignageVenue[];
   progress: MotionValue<number>;
@@ -193,41 +268,8 @@ function SignageMap({ venues, progress, scanTop, scanOpacity, highlight, onHighl
   return (
     <figure className="relative">
       <div className="relative aspect-[4/3] overflow-hidden rounded-card border border-surface/10 bg-surface/[0.03]">
-        <svg
-          aria-hidden
-          viewBox="0 0 400 300"
-          preserveAspectRatio="none"
-          className="absolute inset-0 size-full"
-        >
-          <defs>
-            <pattern id="signage-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M20 0H0V20" fill="none" className="stroke-surface/[0.05]" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="400" height="300" fill="url(#signage-grid)" />
-          {/* City blocks between the streets. */}
-          <g className="fill-surface/[0.035]">
-            {STREET_X.slice(1).flatMap((x, xi) =>
-              STREET_Y.slice(1).map((y, yi) => {
-                const x0 = STREET_X[xi];
-                const y0 = STREET_Y[yi];
-                return <rect key={`${xi}-${yi}`} x={x0 + 7} y={y0 + 7} width={x - x0 - 14} height={y - y0 - 14} rx="4" />;
-              }),
-            )}
-          </g>
-          {/* Side streets. */}
-          <g className="stroke-surface/15" strokeWidth="1.5" fill="none">
-            <path d="M80 0V300M140 0V300M250 0V300M320 0V300" />
-            <path d="M0 150H400" />
-            <path d="M0 262L400 118" strokeDasharray="2 6" />
-          </g>
-          {/* Main streets. */}
-          <g className="stroke-brand-sky/35" strokeWidth="4" fill="none" strokeLinecap="round">
-            <path d="M190 0V300" />
-            <path d="M0 70H400" />
-            <path d="M0 230H400" />
-          </g>
-        </svg>
+        <StreetGrid />
+        <StreetLabels />
 
         {/* Scan line sweeping top → bottom with the scroll. */}
         <motion.div
@@ -250,9 +292,6 @@ function SignageMap({ venues, progress, scanTop, scanOpacity, highlight, onHighl
           />
         ))}
 
-        <p className="absolute left-4 top-4 font-display text-[0.625rem] tracking-[0.3em] text-surface/50 md:left-5 md:top-5">
-          KOKUBUNCHO AREA
-        </p>
       </div>
       <figcaption className="mt-3 flex justify-between gap-4 text-[0.6875rem] text-surface/55">
         <span>遊栄ビジョン 設置拠点（イメージ図）</span>
@@ -261,6 +300,20 @@ function SignageMap({ venues, progress, scanTop, scanOpacity, highlight, onHighl
     </figure>
   );
 }
+
+const LABEL_SIDE = {
+  right: "left-4 top-0 -translate-y-1/2 md:left-5",
+  below: "left-0 top-4 -translate-x-1/2 md:top-5",
+  // The wrapper is as tall as the pin (its centre is the wrapper top), hence
+  // the larger offset: ~8px clear of the pin.
+  above: "bottom-8 left-0 -translate-x-1/2 md:bottom-10",
+  // A second row above "above" labels, for a pin between two neighbours on
+  // the same street (see signage-map). Joined to the pin by LEADER.
+  raised: "bottom-16 left-0 -translate-x-1/2 md:bottom-[4.5rem] lg:bottom-20",
+} as const;
+
+/** Leader line from the pin's top edge up to a "raised" label. */
+const LEADER = "bottom-6 h-10 md:bottom-[1.875rem] md:h-[2.625rem] lg:h-[3.125rem]";
 
 type PinProps = {
   venue: SignageVenue;
@@ -272,7 +325,7 @@ type PinProps = {
 };
 
 function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps) {
-  const pos = PIN_POSITIONS[index % PIN_POSITIONS.length];
+  const pos = pinFor(venue.slug, index);
   // Pins light in order across 0.1 → 0.8 of the map's pass.
   const start = 0.1 + (index / Math.max(1, count)) * 0.6;
   const lit = useTransform(progress, [start, start + 0.1], [0, 1]);
@@ -284,7 +337,7 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
     <div
       aria-hidden
       className="absolute"
-      style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+      style={{ left: pctX(pos.x), top: pctY(pos.y) }}
       onPointerEnter={(e) => e.pointerType === "mouse" && onHighlight(venue.slug)}
       onPointerLeave={(e) => e.pointerType === "mouse" && onHighlight(null)}
     >
@@ -307,10 +360,16 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
           />
         </motion.span>
       </motion.div>
+      {pos.side === "raised" && (
+        <motion.span
+          className={cn("absolute left-0 w-px -translate-x-1/2 bg-brand-sky/50", LEADER)}
+          style={{ opacity: dim }}
+        />
+      )}
       <motion.span
         className={cn(
-          "absolute flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[0.6875rem] font-bold transition-colors duration-hover md:px-3 md:py-1.5 md:text-sm",
-          pos.side === "right" ? "left-4 top-0 -translate-y-1/2 md:left-5" : "left-0 top-4 -translate-x-1/2 md:top-5",
+          "absolute flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[0.6875rem] font-bold transition-colors duration-hover lg:px-3 lg:py-1.5 lg:text-sm",
+          LABEL_SIDE[pos.side],
           active ? "bg-brand-sky text-brand-navy" : "bg-brand-navy/80 text-surface ring-1 ring-surface/15",
         )}
         style={{ opacity: dim }}
