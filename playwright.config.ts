@@ -17,5 +17,10 @@ export default defineConfig({
   projects: [
     { name: "mobile", use: { ...devices["iPhone 14"] } },
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "mobile-reduced",
+      testMatch: /home\.spec\.ts/,
+      use: { ...devices["iPhone 14"], reducedMotion: "reduce" },
+    },
   ],
 });

@@ -1,23 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { watchErrors } from "./errors";
 
 test("トップが表示され、コンソールエラーがない", async ({ page }) => {
-  const errors: string[] = [];
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  const errors = watchErrors(page);
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  const businessPreview = page.getByTestId("business-preview");
-  await businessPreview.scrollIntoViewIfNeeded();
-  await expect(businessPreview).toBeVisible();
+  const businesses = page.getByTestId("businesses");
+  await businesses.scrollIntoViewIfNeeded();
+  await expect(businesses).toBeVisible();
   await expect(page.locator("[data-reveal]").first()).toHaveCSS("opacity", "1");
 
-  // Routes like /about, /business, /news, /recruit, /contact don't exist yet
-  // at this stage of the build (later plans add them). Next.js Link prefetch
-  // 404s for those routes are expected here and are not real bugs; filter
-  // only messages that reference a failed-resource 404 so any other console
-  // error — including one that merely mentions "404" in unrelated text —
-  // still fails the test.
-  const unexpected = errors.filter((e) => !/Failed to load resource.*404/.test(e));
-  expect(unexpected).toEqual([]);
+  // Future-route prefetch 404s are allowed; anything else fails (e2e/errors.ts).
+  expect(errors()).toEqual([]);
 });
 
 test("モバイルでメニューが開閉できる", async ({ page, isMobile }) => {

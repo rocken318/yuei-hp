@@ -1,0 +1,10 @@
+{
+  "id": "recruit-banner",
+  "purpose": "トップ下部の採用バナー背景",
+  "page": "/",
+  "aspect": "21:9",
+  "size": "1680x720",
+  "prompt": "Warm, optimistic scene of young Japanese hospitality and creative staff (seen from behind or softly out of focus, no clear faces) walking together along a bright evening street in Sendai, soft white haze, blue hour sky, gentle bokeh, sense of teamwork and future, lots of bright negative space on the left for a banner headline.",
+  "negative": ["clear faces", "readable signage"],
+  "variants": 2
+}
