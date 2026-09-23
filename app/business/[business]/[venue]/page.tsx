@@ -95,6 +95,8 @@ export default async function VenuePage({ params }: PageProps<"/business/[busine
   const hasInfo = visibleInfoRows(rows).length > 0;
   const links = externalLinks(venue);
   const gallery = venue.gallery.map((src, i) => ({ src, alt: `${venue.name} の写真 ${i + 1}` }));
+  // A lone gallery photo that is also the hero adds nothing: skip the section.
+  const showGallery = gallery.length >= 2 || (gallery.length === 1 && gallery[0].src !== venue.heroImage);
   const businessHref = `/business/${business.slug}`;
 
   return (
@@ -141,7 +143,7 @@ export default async function VenuePage({ params }: PageProps<"/business/[busine
         </div>
 
         {/* Gallery */}
-        {gallery.length > 0 && (
+        {showGallery && (
           <div className="mx-auto mt-16 max-w-7xl px-5 md:mt-24 md:px-8">
             <div className="mb-6 flex items-end justify-between md:mb-8">
               <p className="font-display text-xs tracking-[0.3em] text-brand-blue">GALLERY</p>

@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { content, isVenueBusiness, type Business, type BusinessSlug } from "@/lib/content";
@@ -75,7 +75,7 @@ export default async function BusinessPage({ params }: Props) {
     <>
       <PageHeader
         eyebrow={(business.brandEn ?? business.nameEn).toUpperCase()}
-        title={<FitTitle title={title} />}
+        title={<BreakHints title={title} />}
         lead={business.lead ?? business.summary}
         image={business.heroImage ? { src: business.heroImage, alt: `${title}のイメージ` } : undefined}
         breadcrumbs={[{ href: "/", label: "ホーム" }, { href: "/business", label: "事業紹介" }, { label: title }]}
@@ -146,25 +146,14 @@ function Intro({ business }: { business: Business }) {
 }
 
 /**
- * Page title split at its preferred break points. Japanese phrases don't
- * break inside (auto-phrase), so the type shrinks (below the PageHeader sizes)
- * until the longest part fits its column (e.g. "ナイトエンターテインメント").
- * --fit: the full-width column on phones; --fit-md: the 7/12 title column
- * from md (container max 80rem, 2rem side padding, 3rem gap).
+ * Page title with break opportunities at its preferred points (after "・",
+ * before a trailing "事業"); PageHeader handles wrapping of long phrases.
  */
-function FitTitle({ title }: { title: string }) {
-  const parts = titleParts(title);
-  const longest = Math.max(...parts.map((p) => p.length));
-  return (
-    <span
-      className="block text-[length:min(2.25rem,var(--fit))] [--fit:calc((100vw_-_2.5rem)/var(--n))] [--fit-md:calc((min(100vw,80rem)_-_7rem)*7/12/var(--n))] md:text-[length:min(3.75rem,var(--fit-md))]"
-      style={{ "--n": (longest * 1.06).toFixed(2) } as CSSProperties}
-    >
-      {parts.map((part) => (
-        <span key={part} className="inline-block max-w-full">
-          {part}
-        </span>
-      ))}
-    </span>
-  );
+function BreakHints({ title }: { title: string }) {
+  return titleParts(title).map((part, i) => (
+    <Fragment key={part}>
+      {i > 0 && <wbr />}
+      {part}
+    </Fragment>
+  ));
 }
