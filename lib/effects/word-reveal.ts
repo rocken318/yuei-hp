@@ -105,3 +105,12 @@ export function segmentJa(text: string): string[] {
   }
   return out;
 }
+
+/**
+ * Lines ("\n"-separated) → segments, for ScrollWordReveal's `segments` prop.
+ * Call this on the server: Intl.Segmenter's dictionaries differ between
+ * engines, so segmenting during client render could mismatch hydration.
+ */
+export function segmentLines(text: string): string[][] {
+  return text.split("\n").map((line) => segmentJa(line));
+}

@@ -2,36 +2,25 @@
 "use client";
 
 import { useRef, type RefObject } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-  type UseScrollOptions,
-} from "motion/react";
+import { motion, useScroll, type MotionValue, type UseScrollOptions } from "motion/react";
 import { cn } from "@/lib/utils";
-import { useMotionActive } from "@/lib/effects/hooks";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
 import {
   getWordOpacity,
   getWordRange,
   REST_OPACITY,
   REVEAL_SPAN,
-  segmentJa,
   WORD_WINDOW,
 } from "@/lib/effects/word-reveal";
 
-export type ScrollWordRevealProps = {
-  /** Full text. Lines separated by "\n" render as block lines. */
-  text: string;
+type BaseProps = {
   /**
-   * Preferred: 0→1 progress driven by the caller (e.g. the scrollYProgress of
-   * a pinned section). The component itself creates no sticky layout.
+   * Pre-segmented text: lines → segments. Build it on the server with
+   * `segmentLines()` from lib/effects/word-reveal (Intl.Segmenter output
+   * differs between engines, so segmenting while rendering on the client
+   * could break hydration).
    */
-  progress?: MotionValue<number>;
-  /** Fallback when no `progress`: track this element in window scroll. */
-  target?: RefObject<HTMLElement | null>;
-  /** useScroll offset for the fallback (default: while own/target box crosses the viewport). */
-  offset?: UseScrollOptions["offset"];
+  segments: string[][];
   as?: "p" | "h2" | "h3" | "div";
   className?: string;
   lineClassName?: string;
@@ -44,6 +33,18 @@ export type ScrollWordRevealProps = {
   wordWindow?: number;
 };
 
+export type ScrollWordRevealProps = BaseProps & {
+  /**
+   * Preferred: 0→1 progress driven by the caller (e.g. the scrollYProgress of
+   * a pinned section). The component itself creates no sticky layout.
+   */
+  progress?: MotionValue<number>;
+  /** Fallback when no `progress`: track this element in window scroll. */
+  target?: RefObject<HTMLElement | null>;
+  /** useScroll offset for the fallback (default: while own/target box crosses the viewport). */
+  offset?: UseScrollOptions["offset"];
+};
+
 type WordProps = {
   children: string;
   progress: MotionValue<number>;
@@ -54,12 +55,7 @@ type WordProps = {
 };
 
 function Word({ children, progress, active, range, rest, className }: WordProps) {
-  // Read every source before branching: useTransform(fn) subscribes only to
-  // the values read during its first (render-time) run, when active is 0.
-  const opacity = useTransform(() => {
-    const p = progress.get();
-    return active.get() ? getWordOpacity(p, range, rest) : 1;
-  });
+  const opacity = useGated(() => getWordOpacity(progress.get(), range, rest), active, 1);
   return (
     <motion.span aria-hidden="true" className={className} style={{ opacity }}>
       {children}
@@ -71,11 +67,29 @@ function Word({ children, progress, active, range, rest, className }: WordProps)
  * Words (Japanese: bunsetsu-like segments) go from dim to solid as progress
  * advances. SSR / reduced motion render the text fully opaque.
  */
-export function ScrollWordReveal({
-  text,
-  progress,
+export function ScrollWordReveal({ progress, target, offset, ...rest }: ScrollWordRevealProps) {
+  return progress ? (
+    <WordReveal {...rest} progress={progress} />
+  ) : (
+    <TrackedWordReveal {...rest} target={target} offset={offset} />
+  );
+}
+
+/** Fallback: progress from this element's (or `target`'s) pass through the viewport. */
+function TrackedWordReveal({
   target,
   offset = ["start 0.85", "end 0.35"],
+  ...rest
+}: BaseProps & Pick<ScrollWordRevealProps, "target" | "offset">) {
+  const ownRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: target ?? ownRef, offset });
+  return <WordReveal {...rest} progress={scrollYProgress} ownRef={ownRef} />;
+}
+
+function WordReveal({
+  segments,
+  progress,
+  ownRef,
   as = "p",
   className,
   lineClassName,
@@ -83,30 +97,26 @@ export function ScrollWordReveal({
   restOpacity = REST_OPACITY,
   span = REVEAL_SPAN,
   wordWindow = WORD_WINDOW,
-}: ScrollWordRevealProps) {
-  const ownRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: target ?? ownRef, offset });
-  const value = progress ?? scrollYProgress;
+}: BaseProps & { progress: MotionValue<number>; ownRef?: RefObject<HTMLElement | null> }) {
   const active = useMotionActive();
-
-  const lines = text.split("\n").map((line) => segmentJa(line));
-  const offsets = lines.map((_, li) =>
-    lines.slice(0, li).reduce((n, words) => n + words.length, 0),
+  const text = segments.map((line) => line.join("")).join("\n");
+  const offsets = segments.map((_, li) =>
+    segments.slice(0, li).reduce((n, words) => n + words.length, 0),
   );
-  const count = lines.reduce((n, words) => n + words.length, 0);
+  const count = segments.reduce((n, words) => n + words.length, 0);
 
   const Component = motion[as];
   return (
     <Component ref={ownRef as RefObject<never>} className={className}>
       <span className="sr-only">{text}</span>
-      {lines.map((words, li) => (
+      {segments.map((words, li) => (
         <span key={li} aria-hidden="true" className={cn("block", lineClassName)}>
           {words.map((word, wi) => {
             const i = offsets[li] + wi;
             return (
               <Word
                 key={i}
-                progress={value}
+                progress={progress}
                 active={active}
                 range={getWordRange(i, count, span, wordWindow)}
                 rest={restOpacity}

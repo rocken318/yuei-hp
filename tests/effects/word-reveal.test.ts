@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   segmentJa,
+  segmentLines,
   getWordOpacity,
   getWordRange,
   REST_OPACITY,
@@ -101,5 +102,13 @@ describe("getWordOpacity", () => {
 
   it("rest を指定できる", () => {
     expect(getWordOpacity(0, range, 0.3)).toBe(0.3);
+  });
+});
+
+describe("segmentLines", () => {
+  it("行ごとに分割し、各行は元の行に戻る", () => {
+    const lines = segmentLines(MESSAGE);
+    expect(lines).toHaveLength(4);
+    expect(lines.map((l) => l.join("")).join("\n")).toBe(MESSAGE);
   });
 });

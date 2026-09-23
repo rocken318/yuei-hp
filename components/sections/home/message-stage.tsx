@@ -4,22 +4,22 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ScrollWordReveal } from "@/components/effects/scroll-word-reveal";
-import { useMotionActive } from "@/lib/effects/hooks";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
 
-const MESSAGE = [
-  "国分町の夜から、街の未来へ。",
-  "人が集い、語らい、笑顔になる場所を。",
-  "飲食、エンターテインメント、デジタルサイネージ、そしてWeb。",
-  "私たちは領域を越えて、この街に新しい価値を届けます。",
-].join("\n");
+type Props = {
+  /** The message, pre-segmented on the server (lines → segments). */
+  segments: string[][];
+};
 
 /**
- * Company message. A ~250svh track with a sticky 100svh stage: the
+ * Company message (client part; see message.tsx). A 200svh (phones) /
+ * 250svh (md+) track with a sticky 100svh stage: the
  * Kokubuncho city (B2) fades/zooms in as the section arrives, then the
  * message darkens segment by segment with the section's scroll progress.
- * Reduced motion / SSR: background and text are shown fully, static.
+ * Reduced motion / SSR: background and text are shown fully, static, and
+ * under reduced motion the track collapses to one screen.
  */
-export function Message() {
+export function MessageStage({ segments }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const active = useMotionActive();
 
@@ -37,31 +37,17 @@ export function Message() {
   // Finish the reveal a little before the pin releases so the full message holds.
   const reveal = useTransform(scrollYProgress, [0.04, 0.8], [0, 1]);
 
-  const bgOpacityRaw = useTransform(arrival, [0, 0.9], [0, 1]);
-  const bgScaleRaw = useTransform(
+  // Gate on `active` (SSR / reduced motion → static).
+  const bgOpacity = useGated(useTransform(arrival, [0, 0.9], [0, 1]), active, 1);
+  const bgScale = useGated(
     () => 1.18 - 0.12 * arrival.get() - 0.06 * scrollYProgress.get(),
+    active,
+    1,
   );
-  // Gate on `active` (SSR / reduced motion → static). Sources are read before
-  // branching because useTransform(fn) only subscribes to values it reads on
-  // its first run, when `active` is still 0.
-  const bgOpacity = useTransform(() => {
-    const v = bgOpacityRaw.get();
-    return active.get() ? v : 1;
-  });
-  const bgScale = useTransform(() => {
-    const v = bgScaleRaw.get();
-    return active.get() ? v : 1;
-  });
   // Soft leading edge while the stage rises over the end of the hero. Static
   // (SSR / reduced motion) keeps it on, so the overlap never shows a hard edge.
-  const edgeFade = useTransform(() => {
-    const v = arrival.get();
-    return active.get() ? 1 - v : 1;
-  });
-  const barScale = useTransform(() => {
-    const v = reveal.get();
-    return active.get() ? v : 1;
-  });
+  const edgeFade = useGated(() => 1 - arrival.get(), active, 1);
+  const barScale = useGated(reveal, active, 1);
 
   return (
     <section
@@ -70,7 +56,7 @@ export function Message() {
       aria-labelledby="message-heading"
       // Overlaps the last 30svh of the hero's pinned track so the city
       // crossfades in over the hero instead of after a blank gap.
-      className="relative z-10 -mt-[30svh] h-[250svh]"
+      className="relative z-10 -mt-[30svh] h-[200svh] md:h-[250svh] motion-reduce:mt-0 motion-reduce:h-svh md:motion-reduce:h-svh"
     >
       <div className="sticky top-0 h-svh overflow-hidden">
         <motion.div
@@ -126,7 +112,7 @@ export function Message() {
               </h2>
 
               <ScrollWordReveal
-                text={MESSAGE}
+                segments={segments}
                 progress={reveal}
                 className="mt-5 max-w-[18em] font-heading text-[1.375rem] leading-[1.75] font-bold tracking-[0.02em] text-ink sm:text-3xl md:tracking-[0.04em] md:mt-7 md:text-5xl md:leading-[1.55]"
                 lineClassName="mt-3 md:mt-5"
@@ -145,4 +131,4 @@ export function Message() {
   );
 }
 
-export default Message;
+export default MessageStage;
