@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "mood-a-glass",
+    "variant": "v2",
+    "output": "public/images/generated/mood-a-glass.webp",
+    "briefHash": "250881106faeb280bc963c5e179ef7ec963c4d5c299b6ef60a628a39bd6e1b8a",
+    "styleHash": "dd50fb77238d31b389e3354ae1ec8d71945b58e4c6ad44412ba61db461644a07",
+    "adoptedAt": "2026-09-23T13:45:03.999Z"
+  }
+]
