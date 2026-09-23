@@ -89,7 +89,12 @@ export function StackingCardItem({
   const scaleTo = 1 - (totalCards - index) * (scaleMultiplier ?? 0.03);
   const rangeScale = [index * (1 / totalCards), 1];
   const scrollScale = useTransform(progress, rangeScale, [1, scaleTo]);
-  const scale = useTransform(() => (active.get() ? scrollScale.get() : 1));
+  // Read both before branching: useTransform(fn) subscribes only to values read
+  // during its first (render-time) run, when active is still 0.
+  const scale = useTransform(() => {
+    const s = scrollScale.get();
+    return active.get() ? s : 1;
+  });
   const top = topPosition ?? `${5 + index * 3}%`;
 
   return (

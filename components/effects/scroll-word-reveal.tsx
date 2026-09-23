@@ -54,9 +54,12 @@ type WordProps = {
 };
 
 function Word({ children, progress, active, range, rest, className }: WordProps) {
-  const opacity = useTransform(() =>
-    active.get() ? getWordOpacity(progress.get(), range, rest) : 1,
-  );
+  // Read every source before branching: useTransform(fn) subscribes only to
+  // the values read during its first (render-time) run, when active is 0.
+  const opacity = useTransform(() => {
+    const p = progress.get();
+    return active.get() ? getWordOpacity(p, range, rest) : 1;
+  });
   return (
     <motion.span aria-hidden="true" className={className} style={{ opacity }}>
       {children}
