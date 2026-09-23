@@ -13,7 +13,7 @@ import {
   useTransform,
 } from "motion/react";
 import { cn } from "@/lib/utils";
-import { duration, ease } from "@/lib/motion";
+import { duration, ease, spring } from "@/lib/motion";
 import { FINE_HOVER_QUERY, useMediaQuery } from "@/lib/effects/hooks";
 
 export type TiltProps = {
@@ -24,8 +24,6 @@ export type TiltProps = {
   /** Show the moving light sheen. */
   sheen?: boolean;
 };
-
-const SPRING = { stiffness: 200, damping: 20, mass: 0.5 };
 
 /**
  * Pointer-following 3D tilt + sheen. Active only on fine-pointer/hover
@@ -42,14 +40,14 @@ export function Tilt({ children, className, maxTilt = 6, sheen = true }: TiltPro
   // Pointer position within the element, 0..1 (0.5 = centre).
   const px = useMotionValue(0.5);
   const py = useMotionValue(0.5);
-  const sx = useSpring(px, SPRING);
-  const sy = useSpring(py, SPRING);
+  const sx = useSpring(px, spring.soft);
+  const sy = useSpring(py, spring.soft);
   const rotateX = useTransform(sy, [0, 1], [maxTilt, -maxTilt]);
   const rotateY = useTransform(sx, [0, 1], [-maxTilt, maxTilt]);
   const glareX = useTransform(sx, (v) => v * 100);
   const glareY = useTransform(sy, (v) => v * 100);
   const glareOpacity = useMotionValue(0);
-  const glareOpacitySpring = useSpring(glareOpacity, SPRING);
+  const glareOpacitySpring = useSpring(glareOpacity, spring.soft);
   const background = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, color-mix(in oklab, var(--color-surface) 45%, transparent), transparent 60%)`;
 
   function onPointerMove(e: PointerEvent<HTMLDivElement>) {

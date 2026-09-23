@@ -6,8 +6,9 @@ import { useCallback, useRef, useState, type UIEvent } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Reveal } from "@/components/effects/reveal";
-import { useMotionActive } from "@/lib/effects/hooks";
-import { cn } from "@/lib/utils";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { cn, pad2 } from "@/lib/utils";
+import { SectionEyebrow } from "./section-eyebrow";
 import type { Venue } from "@/lib/content/schema";
 
 export type SignageVenue = Pick<Venue, "slug" | "name" | "catchcopy" | "heroImage">;
@@ -29,8 +30,6 @@ const PIN_POSITIONS: { x: number; y: number; side: "right" | "below" }[] = [
 const STREET_X = [0, 80, 140, 190, 250, 320, 400];
 const STREET_Y = [0, 70, 150, 230, 300];
 
-const pad = (n: number) => String(n).padStart(2, "0");
-
 /**
  * Home §5 — 遊栄ビジョン. An abstract district map whose pins light up one by
  * one as the map scrolls through the viewport (scroll-linked, so it follows
@@ -46,11 +45,7 @@ export function Signage({ venues }: Props) {
   const active = useMotionActive();
   const { scrollYProgress } = useScroll({ target: mapRef, offset: ["start 85%", "end 45%"] });
   // Server/hydration/reduced motion: 1 (= every pin lit, scan finished).
-  // Read the source before branching (see cta.tsx / logo-assemble.tsx).
-  const p = useTransform(() => {
-    const v = scrollYProgress.get();
-    return active.get() ? v : 1;
-  });
+  const p = useGated(scrollYProgress, active, 1);
   const scanTop = useTransform(p, [0, 0.9], ["0%", "100%"]);
   const scanOpacity = useTransform(p, [0, 0.06, 0.8, 0.92], [0, 1, 1, 0]);
 
@@ -85,11 +80,10 @@ export function Signage({ venues }: Props) {
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <div className="grid items-center gap-12 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-16">
           <Reveal>
-            <p className="flex items-center gap-3 font-display text-xs tracking-[0.3em] text-brand-sky">
-              <span aria-hidden className="h-px w-8 bg-brand-sky/60" />
+            <SectionEyebrow tone="onDark">
               YUEI VISION
               <span className="font-sans tracking-[0.15em] text-surface/60">デジタルサイネージ事業</span>
-            </p>
+            </SectionEyebrow>
             <h2
               id="signage-heading"
               className="mt-6 text-[2rem] font-bold leading-[1.3] md:text-4xl md:leading-[1.3] xl:text-[2.75rem]"
@@ -128,7 +122,7 @@ export function Signage({ venues }: Props) {
               aria-hidden
               className="font-display text-xs tracking-[0.2em] text-surface/60 md:hidden"
             >
-              <span className="text-surface">{pad(swipeIndex + 1)}</span> / {pad(venues.length)}
+              <span className="text-surface">{pad2(swipeIndex + 1)}</span> / {pad2(venues.length)}
             </p>
           </div>
           <ul
@@ -279,8 +273,10 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
   const dim = useTransform(lit, [0, 1], [0.3, 1]);
   const scale = useTransform(lit, [0, 1], [0.6, 1]);
 
+  // Decorative: the venues are listed (as links) in the cards below.
   return (
     <div
+      aria-hidden
       className="absolute"
       style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
       onPointerEnter={(e) => e.pointerType === "mouse" && onHighlight(venue.slug)}
@@ -294,12 +290,12 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
         />
         <motion.span aria-hidden className="relative block size-4 md:size-5" style={{ scale }}>
           <motion.span
-            className="absolute inset-0 animate-ping rounded-full border-2 border-brand-sky [animation-duration:2.2s]"
+            className="absolute inset-0 animate-pulse-ring rounded-full border-2 border-brand-sky"
             style={{ opacity: lit }}
           />
           <span
             className={cn(
-              "absolute inset-0 rounded-full border-2 border-surface bg-brand-sky transition-transform duration-300",
+              "absolute inset-0 rounded-full border-2 border-surface bg-brand-sky transition-transform duration-hover",
               active && "scale-150",
             )}
           />
@@ -307,13 +303,13 @@ function MapPin({ venue, index, count, progress, active, onHighlight }: PinProps
       </motion.div>
       <motion.span
         className={cn(
-          "absolute flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[0.6875rem] font-bold transition-colors duration-300 md:px-3 md:py-1.5 md:text-sm",
+          "absolute flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[0.6875rem] font-bold transition-colors duration-hover md:px-3 md:py-1.5 md:text-sm",
           pos.side === "right" ? "left-4 top-0 -translate-y-1/2 md:left-5" : "left-0 top-4 -translate-x-1/2 md:top-5",
           active ? "bg-brand-sky text-brand-navy" : "bg-brand-navy/80 text-surface ring-1 ring-surface/15",
         )}
         style={{ opacity: dim }}
       >
-        <span className={cn("font-display", active ? "text-brand-blue" : "text-brand-sky")}>{pad(index + 1)}</span>
+        <span className={cn("font-display", active ? "text-brand-blue" : "text-brand-sky")}>{pad2(index + 1)}</span>
         {venue.name}
       </motion.span>
     </div>
@@ -336,7 +332,7 @@ function VenueCard({ venue, index, active, onHighlight }: CardProps) {
       onFocus={() => onHighlight(venue.slug)}
       onBlur={() => onHighlight(null)}
       className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-card bg-surface text-ink ring-2 ring-transparent transition-[box-shadow,transform] duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-sky",
+        "group flex h-full flex-col overflow-hidden rounded-card bg-surface text-ink ring-2 ring-transparent transition-[box-shadow,transform] duration-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-sky",
         active && "ring-brand-sky md:-translate-y-1",
       )}
     >
@@ -344,21 +340,27 @@ function VenueCard({ venue, index, active, onHighlight }: CardProps) {
         {venue.heroImage ? (
           <Image
             src={venue.heroImage}
-            alt={`${venue.name}のビジョン`}
+            alt=""
             fill
             sizes="(min-width: 768px) 25vw, 78vw"
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-cover transition-transform duration-reveal group-hover:scale-105"
           />
         ) : (
-          <div className="bg-brand-gradient absolute inset-0 flex flex-col items-center justify-center gap-2 text-surface">
-            <span aria-hidden className="font-display text-[0.625rem] tracking-[0.3em] text-brand-sky">
+          <div
+            aria-hidden
+            className="bg-brand-gradient absolute inset-0 flex flex-col items-center justify-center gap-2 text-surface"
+          >
+            <span className="font-display text-[0.625rem] tracking-[0.3em] text-brand-sky">
               YUEI VISION
             </span>
             <span className="text-sm font-bold tracking-[0.15em]">写真準備中</span>
           </div>
         )}
-        <span className="absolute left-3 top-3 rounded-full bg-brand-navy/85 px-2.5 py-1 font-display text-[0.6875rem] tracking-[0.15em] text-brand-sky">
-          {pad(index + 1)}
+        <span
+          aria-hidden
+          className="absolute left-3 top-3 rounded-full bg-brand-navy/85 px-2.5 py-1 font-display text-[0.6875rem] tracking-[0.15em] text-brand-sky"
+        >
+          {pad2(index + 1)}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-5">

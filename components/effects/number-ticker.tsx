@@ -3,7 +3,7 @@
 // Inspired by https://21st.dev/@magicui/components/number-ticker (self-built).
 
 import { useEffect, useRef } from "react";
-import { animate, useInView, useReducedMotion } from "motion/react";
+import { animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
 import { duration, ease } from "@/lib/motion";
 import { formatNumber } from "@/lib/effects/number";
@@ -19,40 +19,31 @@ export type NumberTickerProps = {
  * Counts 0 → value once when scrolled into view.
  * The server (and no-JS / reduced motion) renders the real value; the count
  * starts from 0 only on the client. Width is reserved by an invisible copy of
- * the final value, so counting never shifts layout.
+ * the final value, so counting never shifts layout. The count is a motion
+ * value rendered as the child of a motion.span, so motion (not React-owned
+ * DOM mutation) updates the text.
  */
 export function NumberTicker({ value, className, delay = 0 }: NumberTickerProps) {
   const rootRef = useRef<HTMLSpanElement>(null);
-  const countRef = useRef<HTMLSpanElement>(null);
   const inView = useInView(rootRef, { once: true, amount: 0.6 });
   const reduced = useReducedMotion();
   const final = formatNumber(value);
-
-  // Before it is seen, show 0 so the count-up reads as a count-up.
-  useEffect(() => {
-    const el = countRef.current;
-    if (!el || reduced || inView) return;
-    el.textContent = formatNumber(0);
-  }, [reduced, inView]);
+  const count = useMotionValue(value);
+  const text = useTransform(count, (v) => formatNumber(v));
 
   useEffect(() => {
-    const el = countRef.current;
-    if (!el) return;
     if (reduced) {
-      el.textContent = final;
+      count.jump(value);
       return;
     }
-    if (!inView) return;
-    const controls = animate(0, value, {
-      delay,
-      duration: duration.slow,
-      ease: ease.out,
-      onUpdate: (v) => {
-        el.textContent = formatNumber(v);
-      },
-    });
+    // Before it is seen, show 0 so the count-up reads as a count-up.
+    if (!inView) {
+      count.jump(0);
+      return;
+    }
+    const controls = animate(count, value, { delay, duration: duration.slow, ease: ease.out });
     return () => controls.stop();
-  }, [inView, reduced, value, delay, final]);
+  }, [count, inView, reduced, value, delay]);
 
   return (
     <span ref={rootRef} className={cn("inline-grid tabular-nums", className)}>
@@ -60,14 +51,9 @@ export function NumberTicker({ value, className, delay = 0 }: NumberTickerProps)
       <span aria-hidden="true" className="invisible col-start-1 row-start-1">
         {final}
       </span>
-      <span
-        ref={countRef}
-        data-ticker-count
-        aria-hidden="true"
-        className="col-start-1 row-start-1 text-right"
-      >
-        {final}
-      </span>
+      <motion.span data-ticker-count aria-hidden="true" className="col-start-1 row-start-1 text-right">
+        {text}
+      </motion.span>
     </span>
   );
 }

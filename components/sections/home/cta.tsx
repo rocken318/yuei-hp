@@ -6,7 +6,8 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ArrowRight, CodeXml, Mail, MonitorPlay } from "lucide-react";
 import { Reveal } from "@/components/effects/reveal";
-import { useMotionActive } from "@/lib/effects/hooks";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
+import { SectionEyebrow } from "./section-eyebrow";
 
 const CONTACT_ENTRIES = [
   { type: "signage", label: "サイネージ広告", note: "遊栄ビジョンへの広告掲載", Icon: MonitorPlay },
@@ -23,12 +24,7 @@ export function Cta() {
   const bannerRef = useRef<HTMLDivElement>(null);
   const active = useMotionActive();
   const { scrollYProgress } = useScroll({ target: bannerRef, offset: ["start end", "end start"] });
-  // Read the source before branching: computed values only subscribe to what
-  // they read on their first run (when `active` is still 0).
-  const imageY = useTransform(() => {
-    const v = scrollYProgress.get();
-    return active.get() ? (v - 0.5) * 16 : 0;
-  });
+  const imageY = useGated(() => (scrollYProgress.get() - 0.5) * 16, active, 0);
   const imageYPercent = useTransform(imageY, (v) => `${v}%`);
 
   return (
@@ -54,21 +50,18 @@ export function Cta() {
             </div>
             <div
               aria-hidden
-              className="absolute inset-y-0 left-0 hidden w-3/5 bg-linear-to-r from-surface/85 via-surface/50 to-transparent sm:block"
+              className="absolute inset-y-0 left-0 hidden w-4/5 bg-linear-to-r from-surface/90 via-surface/60 to-transparent sm:block lg:w-3/5"
             />
 
-            <div className="relative flex h-full flex-col p-6 pt-8 sm:max-w-[55%] sm:justify-center sm:p-10 lg:p-16">
-              <p className="flex items-center gap-3 font-display text-xs tracking-[0.3em] text-brand-blue">
-                <span aria-hidden className="h-px w-8 bg-brand-blue/60" />
-                RECRUIT
-              </p>
+            <div className="relative flex h-full flex-col p-6 pt-8 sm:max-w-[68%] sm:justify-center sm:p-10 lg:max-w-[55%] lg:p-16">
+              <SectionEyebrow>RECRUIT</SectionEyebrow>
               <h2
                 id="recruit-heading"
                 className="mt-4 text-[1.75rem] font-bold leading-[1.4] text-brand-navy md:text-4xl lg:text-5xl lg:leading-[1.3]"
               >
-                この街で、
+                <span className="inline-block">この街で、</span>
                 <br />
-                一緒に未来をつくる。
+                <span className="inline-block">一緒に未来をつくる。</span>
               </h2>
               <div className="mt-6 lg:mt-10">
                 <Link
@@ -89,13 +82,10 @@ export function Cta() {
           <div
             aria-labelledby="contact-heading"
             role="group"
-            className="grid gap-8 rounded-card bg-surface-muted p-6 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] md:items-center md:gap-12 md:p-10 lg:p-12"
+            className="grid gap-8 rounded-card bg-surface-muted p-6 md:p-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:items-center lg:gap-12 lg:p-12"
           >
             <div>
-              <p className="flex items-center gap-3 font-display text-xs tracking-[0.3em] text-brand-blue">
-                <span aria-hidden className="h-px w-8 bg-brand-blue/60" />
-                CONTACT
-              </p>
+              <SectionEyebrow>CONTACT</SectionEyebrow>
               <h2 id="contact-heading" className="mt-4 text-2xl font-bold md:text-3xl">
                 お問い合わせ
               </h2>

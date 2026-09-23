@@ -15,14 +15,17 @@ export default async function HomePage() {
     content.getVenues("signage"),
   ]);
   const storeCount = [...nightlife, ...dining].filter((v) => v.kind === "store").length;
+  // The client Signage section only needs these fields.
+  const signageVenues = signage.map(({ slug, name, catchcopy, heroImage }) => ({ slug, name, catchcopy, heroImage }));
+  const marqueeWords = businesses.map((b) => (b.brandEn ?? b.nameEn).toUpperCase());
 
   return (
     <>
       <Hero />
       <Message />
       <Businesses businesses={businesses} />
-      <BusinessMarquee />
-      <Signage venues={signage} />
+      <BusinessMarquee words={marqueeWords} />
+      <Signage venues={signageVenues} />
       <Numbers businessCount={businesses.length} storeCount={storeCount} signageCount={signage.length} />
       <Cta />
     </>

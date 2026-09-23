@@ -1,6 +1,6 @@
 "use client";
 
-// Inspired by https://21st.dev (infinite text marquee / scroll-velocity marquee), self-built.
+// Source: inspired by https://21st.dev/@preetsuthar17/components/infinite-text-marquee (Framer Motion scroll-velocity marquee)
 
 import { useRef, type ReactNode } from "react";
 import {
@@ -16,6 +16,7 @@ import {
   wrap,
 } from "motion/react";
 import { cn } from "@/lib/utils";
+import { spring } from "@/lib/motion";
 
 export type MarqueeProps = {
   children: ReactNode;
@@ -50,7 +51,7 @@ export function Marquee({
   const baseX = useMotionValue(0);
   const { scrollY } = useScroll();
   const scrollVelocity = useVelocity(scrollY);
-  const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
+  const smoothVelocity = useSpring(scrollVelocity, spring.smooth);
   const velocityFactor = useTransform(smoothVelocity, [0, 1000], [0, scrollBoost], {
     clamp: false,
   });

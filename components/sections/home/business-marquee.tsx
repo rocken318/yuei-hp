@@ -2,14 +2,17 @@ import { Fragment } from "react";
 import { Marquee } from "@/components/effects/marquee";
 import { cn } from "@/lib/utils";
 
-const WORDS = ["NIGHT ENTERTAINMENT", "DINING", "YUEI VISION", "WEB & CONTENT"];
+type Props = {
+  /** One word per business, in display form (see marqueeWords in app/page.tsx). */
+  words: string[];
+};
 
 /**
  * Oversized business-name band. Filled and outlined words alternate; the
  * band speeds up (and flips) with scroll velocity via Marquee. Decorative:
  * the businesses themselves are listed in the section above.
  */
-export function BusinessMarquee() {
+export function BusinessMarquee({ words }: Props) {
   return (
     <div
       data-testid="marquee"
@@ -18,7 +21,7 @@ export function BusinessMarquee() {
     >
       <Marquee baseVelocity={3} repeat={3}>
         <div className="flex items-center font-display text-[3.25rem] leading-none font-bold tracking-tight whitespace-nowrap md:text-[9rem]">
-          {WORDS.map((word, i) => (
+          {words.map((word, i) => (
             <Fragment key={word}>
               <span
                 className={cn(

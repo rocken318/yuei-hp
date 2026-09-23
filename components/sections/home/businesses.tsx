@@ -4,12 +4,15 @@ import type { Business } from "@/lib/content";
 import { Reveal } from "@/components/effects/reveal";
 import { StackingCards, StackingCardItem } from "@/components/effects/stacking-cards";
 import { Tilt } from "@/components/effects/tilt";
+import { pad2 } from "@/lib/utils";
+import { SectionEyebrow } from "./section-eyebrow";
 
 type Props = { businesses: Business[] };
 
 /**
  * Four business cards that stack as the page scrolls (mobile and desktop).
- * Each card sits in a 100svh sticky slot; later cards stop a little lower so
+ * Each card sits in a sticky slot (85svh on phones, 100svh on md+); later
+ * cards stop a little lower so
  * the edges of the earlier ones peek out above, and earlier ones scale down.
  * Card height leaves room for the fixed header (h-16 / md:h-20) and the
  * deepest stack offset so nothing is clipped on a 390x664 viewport.
@@ -20,9 +23,7 @@ export function Businesses({ businesses }: Props) {
     <section data-testid="businesses" aria-labelledby="business-heading" className="relative bg-surface">
       <div className="mx-auto max-w-7xl px-5 pt-24 md:px-8 md:pt-36">
         <Reveal>
-          <p className="font-display text-xs font-medium tracking-[0.3em] text-brand-blue md:text-sm">
-            BUSINESS
-          </p>
+          <SectionEyebrow>BUSINESS</SectionEyebrow>
           <h2
             id="business-heading"
             className="mt-3 text-3xl font-bold tracking-[0.04em] text-ink md:mt-4 md:text-5xl"
@@ -35,14 +36,20 @@ export function Businesses({ businesses }: Props) {
       <StackingCards
         totalCards={total}
         scaleMultiplier={0.04}
-        className="mx-auto max-w-7xl px-5 pb-16 md:px-8 md:pb-28"
+        // Bottom padding = how far the last card overhangs its slot (phones:
+        // 7rem offset + (100svh - 8rem) card - 85svh slot = 15svh - 1rem) plus a
+        // small gap, so the marquee follows the last card closely.
+        className="mx-auto max-w-7xl px-5 pb-[calc(15svh+1rem)] md:px-8 md:pb-12"
       >
         {businesses.map((b, i) => (
           <StackingCardItem
             key={b.slug}
             index={i}
             topPosition={`calc(var(--stack-top) + ${i} * var(--stack-step))`}
-            className="h-svh [--stack-step:0.75rem] [--stack-top:4.75rem] md:[--stack-step:1.25rem] md:[--stack-top:6.5rem]"
+            // Phones: a shorter scroll per card (85svh). Every slot must be the
+            // same height, or shorter slots stay stuck longer than the last
+            // one and their cards peek out below it as the stack leaves.
+            className="h-[85svh] [--stack-step:0.75rem] [--stack-top:4.75rem] md:h-svh md:[--stack-step:1.25rem] md:[--stack-top:6.5rem]"
           >
             <BusinessCard business={b} index={i} />
           </StackingCardItem>
@@ -63,7 +70,7 @@ function titleParts(title: string): string[] {
 }
 
 function BusinessCard({ business: b, index }: { business: Business; index: number }) {
-  const no = String(index + 1).padStart(2, "0");
+  const no = pad2(index + 1);
   const title = b.brand ?? b.name;
   return (
     <article
@@ -114,7 +121,7 @@ function BusinessCard({ business: b, index }: { business: Business; index: numbe
         <div className="mt-auto flex items-end justify-between gap-4 pt-4">
           <Link
             href={`/business/${b.slug}`}
-            className="group inline-flex items-center gap-3 text-sm font-medium text-brand-blue md:text-base"
+            className="group inline-flex items-center gap-3 rounded-full text-sm font-medium text-brand-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-blue md:text-base"
             aria-label={`${title}を詳しく見る`}
           >
             <span className="border-b border-brand-blue/30 pb-1 transition-colors group-hover:border-brand-blue">
@@ -122,7 +129,7 @@ function BusinessCard({ business: b, index }: { business: Business; index: numbe
             </span>
             <span
               aria-hidden="true"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-blue text-surface transition-transform duration-300 group-hover:translate-x-1 md:h-12 md:w-12"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-blue text-surface transition-transform duration-hover group-hover:translate-x-1 md:h-12 md:w-12"
             >
               →
             </span>

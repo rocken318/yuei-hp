@@ -8,6 +8,8 @@ export const BusinessSchema = z.object({
   name: z.string().min(1),
   nameEn: z.string().min(1),
   brand: z.string().optional(),
+  /** Latin form of `brand` (e.g. for display type). */
+  brandEn: z.string().optional(),
   summary: z.string().min(1),
   heroImage: z.string().optional(),
   order: z.number().int(),

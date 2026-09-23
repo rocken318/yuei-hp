@@ -1,5 +1,6 @@
 import { NumberTicker } from "@/components/effects/number-ticker";
 import { Reveal } from "@/components/effects/reveal";
+import { SectionEyebrow } from "./section-eyebrow";
 
 type Props = {
   /** Number of business domains (content/businesses). */
@@ -26,10 +27,7 @@ export function Numbers({ businessCount, storeCount, signageCount }: Props) {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="flex items-center gap-3 font-display text-xs tracking-[0.3em] text-brand-blue">
-              <span aria-hidden className="h-px w-8 bg-brand-blue/60" />
-              YUEI IN NUMBERS
-            </p>
+            <SectionEyebrow>YUEI IN NUMBERS</SectionEyebrow>
             <h2 id="numbers-heading" className="mt-5 text-[1.75rem] font-bold leading-[1.35] md:text-4xl">
               数字で見る遊栄JAPAN
             </h2>
@@ -52,7 +50,7 @@ export function Numbers({ businessCount, storeCount, signageCount }: Props) {
                 <NumberTicker
                   value={item.value}
                   delay={i * 0.12}
-                  className="bg-brand-gradient bg-clip-text font-display text-6xl font-bold leading-none tracking-tight text-transparent md:text-8xl lg:text-9xl"
+                  className="bg-linear-135 from-brand-navy to-brand-blue bg-clip-text font-display text-6xl font-bold leading-none tracking-tight text-transparent md:text-8xl lg:text-9xl"
                 />
                 <span className="text-sm font-bold text-brand-navy md:text-lg">{item.unit}</span>
               </dd>

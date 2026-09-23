@@ -1,6 +1,7 @@
 // Source: https://21st.dev/@danielpetho/components/stacking-cards
 // author: Khoa Phan <https://www.pldkhoa.dev>
-// Adapted: window scroll only (no container), reduced-motion keeps cards unscaled.
+// Adapted: window scroll only (no container), reduced-motion keeps cards unscaled,
+// the last card never scales down.
 
 "use client";
 
@@ -20,7 +21,7 @@ import {
 } from "motion/react";
 
 import { cn } from "@/lib/utils";
-import { useMotionActive } from "@/lib/effects/hooks";
+import { useGated, useMotionActive } from "@/lib/effects/hooks";
 
 export interface StackingCardsProps
   extends PropsWithChildren,
@@ -86,15 +87,12 @@ export function StackingCardItem({
   ...props
 }: StackingCardItemProps) {
   const { progress, active, scaleMultiplier, totalCards = 0 } = useStackingCardsContext();
-  const scaleTo = 1 - (totalCards - index) * (scaleMultiplier ?? 0.03);
+  // The last card stays full size: nothing stacks on top of it.
+  const isLast = index >= totalCards - 1;
+  const scaleTo = isLast ? 1 : 1 - (totalCards - index) * (scaleMultiplier ?? 0.03);
   const rangeScale = [index * (1 / totalCards), 1];
   const scrollScale = useTransform(progress, rangeScale, [1, scaleTo]);
-  // Read both before branching: useTransform(fn) subscribes only to values read
-  // during its first (render-time) run, when active is still 0.
-  const scale = useTransform(() => {
-    const s = scrollScale.get();
-    return active.get() ? s : 1;
-  });
+  const scale = useGated(scrollScale, active, 1);
   const top = topPosition ?? `${5 + index * 3}%`;
 
   return (
