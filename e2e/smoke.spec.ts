@@ -5,9 +5,9 @@ test("トップが表示され、コンソールエラーがない", async ({ pa
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  const businessPreview = page.getByTestId("business-preview");
-  await businessPreview.scrollIntoViewIfNeeded();
-  await expect(businessPreview).toBeVisible();
+  const businesses = page.getByTestId("businesses");
+  await businesses.scrollIntoViewIfNeeded();
+  await expect(businesses).toBeVisible();
   await expect(page.locator("[data-reveal]").first()).toHaveCSS("opacity", "1");
 
   // Routes like /about, /business, /news, /recruit, /contact don't exist yet
