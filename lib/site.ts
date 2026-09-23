@@ -1,3 +1,11 @@
+// A production deploy without an explicit origin would publish canonical
+// URLs / sitemap / JSON-LD pointing at the fallback vercel.app domain.
+if (process.env.VERCEL_ENV === "production" && !process.env.NEXT_PUBLIC_SITE_URL) {
+  console.warn(
+    "lib/site: NEXT_PUBLIC_SITE_URL is not set in production; falling back to https://yuei-hp.vercel.app for canonical URLs.",
+  );
+}
+
 /** Public origin of the site (no trailing slash). Override with NEXT_PUBLIC_SITE_URL. */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://yuei-hp.vercel.app").replace(/\/+$/, "");
 

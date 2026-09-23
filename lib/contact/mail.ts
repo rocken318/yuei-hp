@@ -12,10 +12,18 @@ export const DEFAULT_CONTACT_FROM = "onboarding@resend.dev";
 
 const present = (v: string | undefined) => typeof v === "string" && v.trim() !== "";
 
-/** Sending is on only when both the API key and the recipient are set. */
+/**
+ * Sending is on only when the API key, the recipient AND the sender are all
+ * set. CONTACT_FROM is required because Resend's shared sender
+ * (onboarding@resend.dev) only delivers to the Resend account owner, so
+ * without a verified-domain sender inquiries would silently go nowhere.
+ */
 export function isMailConfigured(env: MailEnv): boolean {
-  return present(env.RESEND_API_KEY) && present(env.CONTACT_TO);
+  return present(env.RESEND_API_KEY) && present(env.CONTACT_TO) && present(env.CONTACT_FROM);
 }
+
+/** Resend request timeout: a hung request fails the submission instead of stalling it. */
+export const RESEND_TIMEOUT_MS = 10_000;
 
 export type ContactEmailPayload = {
   from: string;
@@ -62,7 +70,9 @@ export function buildContactEmail(data: ContactData, env: Required<Pick<MailEnv,
 
 /**
  * Posts the payload to Resend. Resolves to true on a 2xx response, false on
- * any failure (network error or error status) — never throws.
+ * any failure (network error, timeout or error status) — never throws.
+ * Failures are logged with the status / Resend's error body only; the
+ * payload (the inquirer's personal data) is never logged.
  */
 export async function sendContactEmail(
   payload: ContactEmailPayload,
@@ -75,9 +85,21 @@ export async function sendContactEmail(
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
       cache: "no-store",
+      signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
     });
-    return res.ok;
-  } catch {
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`contact mail: Resend responded ${res.status}: ${body.slice(0, 500)}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    const name = err instanceof Error ? err.name : "";
+    if (name === "TimeoutError" || name === "AbortError") {
+      console.error(`contact mail: Resend request timed out after ${RESEND_TIMEOUT_MS}ms`);
+    } else {
+      console.error(`contact mail: Resend request failed (${name || "unknown error"})`);
+    }
     return false;
   }
 }

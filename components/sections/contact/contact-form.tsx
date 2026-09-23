@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useActionState, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { startTransition, useActionState, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { AlertCircle, ArrowRight, Check, CircleCheck, CodeXml, Info, Loader2, Mail, MonitorPlay } from "lucide-react";
 import { sendContact } from "@/app/contact/actions";
@@ -41,14 +41,20 @@ type Props = {
  * The contact form. Validation runs on the client with the same schema the
  * Server Action uses (lib/contact/schema.ts): per field on blur, all fields
  * on submit (the first invalid field is focused). Errors are tied to their
- * inputs with aria-invalid / aria-describedby. Without JavaScript the form
- * still posts to the Server Action.
+ * inputs with aria-invalid / aria-describedby. Submission requires
+ * JavaScript (the inputs are controlled and the submit handler dispatches
+ * the Server Action manually).
  */
 export function ContactForm({ initialType, mailEnabled }: Props) {
   const formId = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState<ContactValues>(() => emptyContactValues(initialType));
   const [errors, setErrors] = useState<ContactFieldErrors>({});
+  // Marks the form as interactive once hydrated (e2e waits on
+  // data-hydrated="true"). Set on the DOM node directly: no extra render.
+  useEffect(() => {
+    formRef.current?.setAttribute("data-hydrated", "true");
+  }, []);
   const [state, formAction, pending] = useActionState<ContactState, FormData>(async (prev, fd) => {
     const next = await sendContact(prev, fd);
     if (next.status === "invalid") setErrors(next.errors);
@@ -288,21 +294,23 @@ export function ContactForm({ initialType, mailEnabled }: Props) {
         </div>
       </div>
 
-      {/* Honeypot: off-screen and skipped by keyboard and assistive tech. */}
-      <div aria-hidden className="absolute -left-[9999px] size-px overflow-hidden">
-        <label htmlFor={id("website")}>ウェブサイト（入力しないでください）</label>
-        <input
-          id={id("website")}
-          name="website"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-          value={values.website}
-          onChange={(e) => setValue("website", e.target.value)}
-        />
-      </div>
+      <div className="relative grid gap-8 border-t border-line pt-8 md:pt-10">
+        {/* Honeypot: clipped to 1px (sr-only style) inside this relative
+            container, so it can't widen the page; skipped by keyboard and
+            assistive tech. Absolutely positioned, so it's not a grid item. */}
+        <div aria-hidden className="sr-only">
+          <label htmlFor={id("website")}>ウェブサイト（入力しないでください）</label>
+          <input
+            id={id("website")}
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={values.website}
+            onChange={(e) => setValue("website", e.target.value)}
+          />
+        </div>
 
-      <div className="grid gap-8 border-t border-line pt-8 md:pt-10">
         <div>
           <label className="flex cursor-pointer items-start gap-3 text-sm leading-[1.9] text-ink md:text-base">
             <input

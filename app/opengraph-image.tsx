@@ -16,9 +16,10 @@ type Font = { name: string; data: ArrayBuffer; weight: 500 | 700; style: "normal
 
 /**
  * Subsets with just these glyphs, fetched once when the image is generated
- * (at build — the route is static). Without network the image still renders,
- * in the built-in Latin font (Japanese glyphs would be missing), so an
- * offline build doesn't fail.
+ * (at build — the route is static). On CI / Vercel a font failure fails the
+ * build rather than shipping a share image with missing Japanese glyphs.
+ * Locally (e.g. offline) the image still renders in the built-in Latin font,
+ * with a warning.
  */
 async function loadFonts(): Promise<Font[]> {
   try {
@@ -31,6 +32,11 @@ async function loadFonts(): Promise<Font[]> {
       { name: "Space Grotesk", data: display, weight: 500, style: "normal" },
     ];
   } catch (err) {
+    if (process.env.CI || process.env.VERCEL) {
+      throw new Error(`opengraph-image: web fonts unavailable; refusing to ship broken glyphs (${String(err)})`, {
+        cause: err,
+      });
+    }
     console.warn(`opengraph-image: web fonts unavailable, using the default font (${String(err)})`);
     return [];
   }

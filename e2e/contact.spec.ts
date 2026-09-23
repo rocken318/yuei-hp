@@ -1,7 +1,13 @@
+import { readdirSync } from "node:fs";
+import path from "node:path";
 import { test, expect } from "@playwright/test";
 import { watchErrors } from "./errors";
 
-// The e2e server runs without RESEND_API_KEY / CONTACT_TO, so the form is
+const venueCount = (business: string) =>
+  readdirSync(path.join(__dirname, "..", "content", "venues", business)).filter((f) => f.endsWith(".mdx")).length;
+
+// The e2e server runs with RESEND_API_KEY / CONTACT_TO / CONTACT_FROM pinned
+// empty (playwright.config.ts), so the form is
 // shown with the "準備中" notice and a disabled submit button. Submit-time
 // validation and sending are covered by the unit tests (tests/contact).
 
@@ -37,8 +43,8 @@ test("/contact?type=web preselects Web制作 and shows the not-yet-accepting not
 test("/contact without a type selects nothing; required fields report errors on blur", async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto("/contact?type=unknown");
-  // Blur validation is client-side: let the page hydrate first.
-  await page.waitForLoadState("networkidle");
+  // Blur validation is client-side: wait until the form has hydrated.
+  await expect(page.getByTestId("contact-form")).toHaveAttribute("data-hydrated", "true");
   for (const name of [/サイネージ広告/, /Web制作/, /取材・その他/]) {
     await expect(page.getByRole("radio", { name })).not.toBeChecked();
   }
@@ -88,8 +94,12 @@ test("/recruit says postings will be on each store's site and links stores and c
   await expect(page.getByText(/募集中/)).toHaveCount(0);
   const lists = page.getByTestId("venue-list");
   await expect(lists).toHaveCount(2);
-  await expect(page.locator('[data-testid="venue-list"] a[href^="/business/nightlife/"]')).toHaveCount(3);
-  await expect(page.locator('[data-testid="venue-list"] a[href^="/business/dining/"]')).toHaveCount(2);
+  await expect(page.locator('[data-testid="venue-list"] a[href^="/business/nightlife/"]')).toHaveCount(
+    venueCount("nightlife"),
+  );
+  await expect(page.locator('[data-testid="venue-list"] a[href^="/business/dining/"]')).toHaveCount(
+    venueCount("dining"),
+  );
   await expect(page.locator('main a[href="/contact?type=other"]')).toHaveCount(1);
 });
 
@@ -98,5 +108,7 @@ test("/privacy lists the contact point with the company name and address", async
   const contact = page.getByTestId("privacy-contact");
   await expect(contact).toContainText("株式会社");
   await expect(contact).toContainText("宮城県仙台市青葉区国分町");
+  // Postal fallback while the form isn't accepting submissions.
+  await expect(contact).toContainText("郵送でのお問い合わせ");
   await expect(contact.getByRole("link", { name: "お問い合わせフォーム" })).toHaveAttribute("href", "/contact?type=other");
 });

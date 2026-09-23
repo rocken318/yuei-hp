@@ -17,10 +17,11 @@ const CRUMBS = [{ href: "/", label: "ホーム" }, { label: "お問い合わせ"
 
 export default async function ContactPage({ searchParams }: PageProps<"/contact">) {
   const { type } = await searchParams;
-  // Read at request time: the form can't send until both env vars are set.
+  // Read at request time: the form can't send until all three env vars are set.
   const mailEnabled = isMailConfigured({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     CONTACT_TO: process.env.CONTACT_TO,
+    CONTACT_FROM: process.env.CONTACT_FROM,
   });
 
   return (

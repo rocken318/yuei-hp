@@ -23,12 +23,16 @@ const data: ContactData = {
 const ok = async () => new Response("{}", { status: 200 });
 
 describe("isMailConfigured", () => {
-  it("API キーと送信先の両方があるときだけ有効", () => {
+  it("API キー・送信先・送信元がすべてあるときだけ有効", () => {
+    const full = { RESEND_API_KEY: "re_x", CONTACT_TO: "info@example.com", CONTACT_FROM: "noreply@example.com" };
     expect(isMailConfigured({})).toBe(false);
     expect(isMailConfigured({ RESEND_API_KEY: "re_x" })).toBe(false);
     expect(isMailConfigured({ CONTACT_TO: "info@example.com" })).toBe(false);
-    expect(isMailConfigured({ RESEND_API_KEY: " ", CONTACT_TO: "info@example.com" })).toBe(false);
-    expect(isMailConfigured({ RESEND_API_KEY: "re_x", CONTACT_TO: "info@example.com" })).toBe(true);
+    // Without CONTACT_FROM (onboarding@resend.dev only reaches the account owner).
+    expect(isMailConfigured({ RESEND_API_KEY: "re_x", CONTACT_TO: "info@example.com" })).toBe(false);
+    expect(isMailConfigured({ ...full, RESEND_API_KEY: " " })).toBe(false);
+    expect(isMailConfigured({ ...full, CONTACT_FROM: " " })).toBe(false);
+    expect(isMailConfigured(full)).toBe(true);
   });
 });
 
@@ -73,22 +77,51 @@ describe("sendContactEmail", () => {
     expect(init.method).toBe("POST");
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer re_key");
     expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("エラー応答や通信失敗は false（例外を投げない）", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const payload = buildContactEmail(data, { CONTACT_TO: "info@example.com" });
-    await expect(sendContactEmail(payload, "k", async () => new Response("", { status: 422 }))).resolves.toBe(false);
+    await expect(
+      sendContactEmail(payload, "k", async () => new Response('{"message":"invalid from"}', { status: 422 })),
+    ).resolves.toBe(false);
     await expect(
       sendContactEmail(payload, "k", async () => {
         throw new Error("network");
       }),
     ).resolves.toBe(false);
+    log.mockRestore();
+  });
+
+  it("エラー時はステータスと応答本文をログに残し、個人情報は出さない", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const payload = buildContactEmail(data, { CONTACT_TO: "info@example.com" });
+    await sendContactEmail(payload, "k", async () => new Response('{"message":"invalid from"}', { status: 422 }));
+    const out = log.mock.calls.flat().join(" ");
+    expect(out).toContain("422");
+    expect(out).toContain("invalid from");
+    expect(out).not.toContain(data.email);
+    expect(out).not.toContain(data.name);
+    log.mockRestore();
+  });
+
+  it("タイムアウト（中断）は false でログを残す", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const payload = buildContactEmail(data, { CONTACT_TO: "info@example.com" });
+    await expect(
+      sendContactEmail(payload, "k", async () => {
+        throw new DOMException("The operation timed out.", "TimeoutError");
+      }),
+    ).resolves.toBe(false);
+    expect(log.mock.calls.flat().join(" ")).toMatch(/timed out/);
+    log.mockRestore();
   });
 });
 
 describe("submitContact", () => {
   const values = { ...data };
-  const env = { RESEND_API_KEY: "re_key", CONTACT_TO: "info@example.com" };
+  const env = { RESEND_API_KEY: "re_key", CONTACT_TO: "info@example.com", CONTACT_FROM: "noreply@example.com" };
 
   it("ハニーポットが埋まっていたら送らずに成功を装う", async () => {
     const fetchImpl = vi.fn(ok);
@@ -107,10 +140,18 @@ describe("submitContact", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
+  it("CONTACT_FROM が無ければ disabled（送信しない）", async () => {
+    const fetchImpl = vi.fn(ok);
+    await expect(submitContact(values, { ...env, CONTACT_FROM: "" }, fetchImpl)).resolves.toEqual({ status: "disabled" });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("送信結果に応じて success / error", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(submitContact(values, env, ok)).resolves.toEqual({ status: "success" });
     await expect(submitContact(values, env, async () => new Response("", { status: 500 }))).resolves.toEqual({
       status: "error",
     });
+    log.mockRestore();
   });
 });
