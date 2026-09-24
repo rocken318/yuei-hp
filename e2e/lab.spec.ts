@@ -4,7 +4,7 @@ import { watchErrors } from "./errors";
 // Internal comparison lab (app/lab/businesses): 404 on Vercel production.
 test.skip(process.env.VERCEL_ENV === "production", "lab is not served in production");
 
-for (const v of ["b", "c", "d", "e"] as const) {
+for (const v of ["b", "c", "d", "e", "f"] as const) {
   test(`事業紹介ラボ ?v=${v} が表示され、コンソールエラーがない`, async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(`/lab/businesses?v=${v}`);

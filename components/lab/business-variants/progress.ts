@@ -68,3 +68,32 @@ export function slantPolygon(t: number): string {
 }
 
 const round = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * One face of a four-sided prism turning around its vertical axis (variant
+ * E/F), at signed distance `d` (in faces) from the front: its yaw in degrees
+ * (90° per face), its opacity (faces past the side are hidden) and the
+ * opacity of the navy veil that dims it as it turns away (0 at the front,
+ * `maxVeil` edge-on). Pure: the component turns it into a CSS transform.
+ */
+export function prismFace(d: number, maxVeil = 0.45): { yaw: number; opacity: number; veil: number } {
+  const turn = Math.min(1, Math.abs(d));
+  return {
+    yaw: round(d * 90),
+    opacity: 1 - clamp01(Math.abs(d) - 1.2),
+    // 1 - cos easing: the front face stays clear early in a turn, the veil
+    // deepens as the face goes edge-on.
+    veil: round((1 - Math.cos((turn * Math.PI) / 2)) * maxVeil),
+  };
+}
+
+/**
+ * How far (0..1) a turning prism is between two faces at continuous
+ * `position`: 0 when a face is square to the viewer, 1 half-way (45°), as a
+ * smooth sine bump. Used to pull the phone prism back while it turns, so the
+ * corner coming forward does not push the faces past the screen edges.
+ */
+export function prismTurn(position: number): number {
+  const frac = position - Math.floor(position);
+  return round(Math.sin(frac * Math.PI) * 1000) / 1000;
+}

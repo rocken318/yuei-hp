@@ -90,7 +90,10 @@ function Switcher({ current }: { current: LabVariantId | null }) {
       aria-label="表現バリエーション"
       className="sticky top-16 z-40 flex h-[var(--lab-bar)] items-center border-b border-line bg-surface/85 backdrop-blur-md md:top-20"
     >
-      <ol className="mx-auto grid w-full max-w-3xl grid-cols-5 gap-1 px-3 md:px-8">
+      <ol
+        className="mx-auto grid w-full max-w-5xl gap-0.5 px-2 md:gap-1 md:px-8"
+        style={{ gridTemplateColumns: `repeat(${LAB_VARIANTS.length}, minmax(0, 1fr))` }}
+      >
         {LAB_VARIANTS.map((v) => {
           const selected = v.id === current;
           return (
@@ -106,7 +109,16 @@ function Switcher({ current }: { current: LabVariantId | null }) {
                 )}
               >
                 <span className="font-display text-xs font-bold md:text-sm">{v.id.toUpperCase()}</span>
-                <span className="mt-0.5 text-[0.625rem] whitespace-nowrap md:mt-0 md:text-xs">{v.label}</span>
+                <span className="mt-0.5 text-[0.5625rem] whitespace-nowrap md:mt-0 md:text-xs">
+                  {"shortLabel" in v ? (
+                    <>
+                      <span className="md:hidden">{v.shortLabel}</span>
+                      <span className="hidden md:inline">{v.label}</span>
+                    </>
+                  ) : (
+                    v.label
+                  )}
+                </span>
               </Link>
             </li>
           );

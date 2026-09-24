@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { activeIndex, progressForStep, slantPolygon, stepPosition } from "@/components/lab/business-variants/progress";
+import { activeIndex, prismFace, prismTurn, progressForStep, slantPolygon, stepPosition } from "@/components/lab/business-variants/progress";
 import { parseVariant } from "@/components/lab/business-variants/variants";
 
 describe("stepPosition", () => {
@@ -84,9 +84,56 @@ describe("slantPolygon", () => {
   });
 });
 
+describe("prismFace", () => {
+  it("正面は回転なし・ヴェールなし・不透明", () => {
+    expect(prismFace(0)).toEqual({ yaw: 0, opacity: 1, veil: 0 });
+  });
+
+  it("1 面ごとに 90°、符号付き", () => {
+    expect(prismFace(1).yaw).toBe(90);
+    expect(prismFace(-0.5).yaw).toBe(-45);
+  });
+
+  it("ヴェールは向きに対して単調増加し、真横で最大", () => {
+    let prev = -1;
+    for (let d = 0; d <= 1; d += 0.05) {
+      const { veil } = prismFace(d, 0.4);
+      expect(veil).toBeGreaterThanOrEqual(prev);
+      expect(prismFace(-d, 0.4).veil).toBe(veil);
+      prev = veil;
+    }
+    expect(prismFace(1, 0.4).veil).toBeCloseTo(0.4);
+    expect(prismFace(0.2, 0.4).veil).toBeLessThan(0.03);
+  });
+
+  it("裏側の面は消える", () => {
+    expect(prismFace(1).opacity).toBe(1);
+    expect(prismFace(2.2).opacity).toBe(0);
+    expect(prismFace(-3).opacity).toBe(0);
+  });
+});
+
+describe("prismTurn", () => {
+  it("面が正対していれば 0、45° で 1", () => {
+    expect(prismTurn(0)).toBe(0);
+    expect(prismTurn(2)).toBe(0);
+    expect(prismTurn(0.5)).toBe(1);
+    expect(prismTurn(1.5)).toBe(1);
+  });
+
+  it("0〜1 に収まり、半分の前後で対称", () => {
+    for (let p = 0; p <= 3; p += 0.07) {
+      expect(prismTurn(p)).toBeGreaterThanOrEqual(0);
+      expect(prismTurn(p)).toBeLessThanOrEqual(1);
+    }
+    expect(prismTurn(0.2)).toBeCloseTo(prismTurn(0.8));
+  });
+});
+
 describe("parseVariant", () => {
-  it("a〜e を受け付け、それ以外は a", () => {
+  it("a〜f を受け付け、それ以外は a", () => {
     expect(parseVariant("b")).toBe("b");
+    expect(parseVariant("F")).toBe("f");
     expect(parseVariant(" E ")).toBe("e");
     expect(parseVariant("z")).toBe("a");
     expect(parseVariant(null)).toBe("a");

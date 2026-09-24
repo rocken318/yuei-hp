@@ -14,7 +14,7 @@ import { VariantERotate } from "@/components/lab/business-variants/variant-e-rot
 
 /**
  * Local comparison lab for the home page's business section: the current
- * stacking cards (A) against four alternative scroll presentations (B–E),
+ * stacking cards (A) against alternative scroll presentations (B–F),
  * picked with `?v=`. Internal only: 404 on Vercel production, noindex, and
  * not in the sitemap (lib/seo/sitemap.ts lists known routes only).
  */
@@ -51,6 +51,7 @@ export default async function BusinessLabPage() {
     c: <VariantCSplit businesses={businesses} />,
     d: <VariantDWipe businesses={businesses} />,
     e: <VariantERotate businesses={businesses} />,
+    f: <VariantERotate businesses={businesses} prismOnPhones />,
   };
   const after = (
     <>

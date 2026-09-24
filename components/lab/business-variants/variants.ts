@@ -30,6 +30,13 @@ export const LAB_VARIANTS = [
     name: "E. 3D回転",
     caption: "4面の立体にカードを配置し、スクロールで回転させて各事業を正面に。PCは角柱の回転、スマホは読みやすいカバーフロー（角度控えめ）です。",
   },
+  {
+    id: "f",
+    label: "E' 角柱（スマホも）",
+    shortLabel: "E' 角柱",
+    name: "F. E' 角柱（スマホも）",
+    caption: "E の角柱をスマホでもそのまま使う案。カードを画面幅いっぱいの面にして、スクロールで 90° ずつ回転します。PCの表示は E と同じです。",
+  },
 ] as const;
 
 export type LabVariantId = (typeof LAB_VARIANTS)[number]["id"];
