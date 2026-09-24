@@ -1,10 +1,46 @@
+import type { Business } from "@/lib/content";
+import { titleParts } from "@/components/sections/business/title-parts";
+
 /**
- * Pure scroll-progress helpers shared by the business scroll lab variants
- * (components/lab/business-variants). No React, no DOM: unit-tested in
- * tests/lab/business-lab.test.ts.
+ * Data and pure scroll math for the home page's business prism
+ * (businesses-prism.tsx). No React, no DOM: unit-tested in
+ * tests/sections/businesses-prism.test.ts.
  */
 
+/** The serializable subset of a business the (client) prism renders. */
+export type PrismBusiness = {
+  slug: string;
+  /** Displayed title: brand ?? name. */
+  title: string;
+  /** Line-break units of `title` (see components/sections/business/title-parts.ts). */
+  titleParts: string[];
+  /** The formal business name when a brand is shown as the title. */
+  subName?: string;
+  nameEn: string;
+  lead?: string;
+  summary: string;
+  heroImage?: string;
+  href: string;
+};
+
+export function toPrismBusiness(b: Business): PrismBusiness {
+  const title = b.brand ?? b.name;
+  return {
+    slug: b.slug,
+    title,
+    titleParts: titleParts(title, b.titleDisplay),
+    subName: b.brand ? b.name : undefined,
+    nameEn: b.nameEn,
+    lead: b.lead,
+    summary: b.summary,
+    heroImage: b.heroImage,
+    href: `/business/${b.slug}`,
+  };
+}
+
 export const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+const round = (n: number) => Math.round(n * 100) / 100;
 
 /**
  * Continuous position (0..count-1) of a pinned, stepped section at scroll
@@ -33,7 +69,7 @@ export function activeIndex(position: number, count: number): number {
 
 /**
  * Scroll progress (0..1) at the middle of item `index`'s plateau: the inverse
- * of stepPosition, used by step dots to jump to a business.
+ * of stepPosition, used by the list / dots to jump to a business.
  */
 export function progressForStep(index: number, count: number, hold = 0.5): number {
   if (count <= 1) return 0;
@@ -47,34 +83,10 @@ export function progressForStep(index: number, count: number, hold = 0.5): numbe
 }
 
 /**
- * Clip-path polygon of a slanted parallelogram (like the pieces of the Yuei
- * mark: near-vertical sides leaning right, top and bottom edges rising to the
- * right), centred in its box and grown by `t` (0 = small shard, 1 = well past
- * every edge of the box, i.e. fully revealed).
- */
-export function slantPolygon(t: number): string {
-  const k = clamp01(t);
-  const halfW = 7 + k * 78; // % of width
-  const halfH = 11 + k * 84; // % of height
-  const lean = 2.5 + k * 12; // horizontal lean of the sides
-  const rise = 4 + k * 10; // vertical rise of the top/bottom edges
-  const pt = (x: number, y: number) => `${round(50 + x)}% ${round(50 + y)}%`;
-  return `polygon(${[
-    pt(-halfW + lean, -halfH + rise),
-    pt(halfW + lean, -halfH - rise),
-    pt(halfW - lean, halfH - rise),
-    pt(-halfW - lean, halfH + rise),
-  ].join(", ")})`;
-}
-
-const round = (n: number) => Math.round(n * 100) / 100;
-
-/**
- * One face of a four-sided prism turning around its vertical axis (variant
- * E/F), at signed distance `d` (in faces) from the front: its yaw in degrees
- * (90° per face), its opacity (faces past the side are hidden) and the
- * opacity of the navy veil that dims it as it turns away (0 at the front,
- * `maxVeil` edge-on). Pure: the component turns it into a CSS transform.
+ * One face of a four-sided prism turning around its vertical axis, at signed
+ * distance `d` (in faces) from the front: its yaw in degrees (90° per face),
+ * its opacity (faces past the side are hidden) and the opacity of the navy
+ * veil that dims it as it turns away (0 at the front, `maxVeil` edge-on).
  */
 export function prismFace(d: number, maxVeil = 0.45): { yaw: number; opacity: number; veil: number } {
   const turn = Math.min(1, Math.abs(d));

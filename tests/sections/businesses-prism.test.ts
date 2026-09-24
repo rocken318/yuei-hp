@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { activeIndex, prismFace, prismTurn, progressForStep, slantPolygon, stepPosition } from "@/components/lab/business-variants/progress";
-import { parseVariant } from "@/components/lab/business-variants/variants";
+import {
+  activeIndex,
+  prismFace,
+  prismTurn,
+  progressForStep,
+  stepPosition,
+  toPrismBusiness,
+} from "@/components/sections/home/businesses-prism-model";
+import type { Business } from "@/lib/content";
 
 describe("stepPosition", () => {
   it("両端は 0 と count-1", () => {
@@ -63,27 +70,6 @@ describe("progressForStep", () => {
   });
 });
 
-describe("slantPolygon", () => {
-  it("4 点の polygon を返し、t=1 ではボックスを覆う", () => {
-    const small = slantPolygon(0);
-    expect(small).toMatch(/^polygon\((?:[-\d.]+% [-\d.]+%(?:, )?){4}\)$/);
-    const pts = slantPolygon(1)
-      .slice(8, -1)
-      .split(", ")
-      .map((p) => p.split(" ").map(parseFloat));
-    // Every corner lies outside the 0..100% box on both axes.
-    const [tl, tr, br, bl] = pts;
-    expect(tl[0]).toBeLessThan(0);
-    expect(tl[1]).toBeLessThan(0);
-    expect(tr[0]).toBeGreaterThan(100);
-    expect(tr[1]).toBeLessThan(0);
-    expect(br[0]).toBeGreaterThan(100);
-    expect(br[1]).toBeGreaterThan(100);
-    expect(bl[0]).toBeLessThan(0);
-    expect(bl[1]).toBeGreaterThan(100);
-  });
-});
-
 describe("prismFace", () => {
   it("正面は回転なし・ヴェールなし・不透明", () => {
     expect(prismFace(0)).toEqual({ yaw: 0, opacity: 1, veil: 0 });
@@ -130,12 +116,26 @@ describe("prismTurn", () => {
   });
 });
 
-describe("parseVariant", () => {
-  it("a〜f を受け付け、それ以外は a", () => {
-    expect(parseVariant("b")).toBe("b");
-    expect(parseVariant("F")).toBe("f");
-    expect(parseVariant(" E ")).toBe("e");
-    expect(parseVariant("z")).toBe("a");
-    expect(parseVariant(null)).toBe("a");
+describe("toPrismBusiness", () => {
+  const base = {
+    slug: "nightlife",
+    name: "ナイトエンターテインメント事業",
+    nameEn: "Nightlife",
+    summary: "概要",
+  } as unknown as Business;
+
+  it("ブランドがなければ事業名を表示し、/business/<slug> へリンク", () => {
+    const b = toPrismBusiness(base);
+    expect(b.title).toBe("ナイトエンターテインメント事業");
+    expect(b.subName).toBeUndefined();
+    expect(b.href).toBe("/business/nightlife");
+    expect(b.titleParts.join("")).toBe(b.title);
+  });
+
+  it("ブランドがあればブランド名を表示し、事業名を副題に。titleDisplay で改行位置を決める", () => {
+    const b = toPrismBusiness({ ...base, brand: "ユーエイWeb", titleDisplay: "ユーエイ|Web" } as Business);
+    expect(b.title).toBe("ユーエイWeb");
+    expect(b.subName).toBe("ナイトエンターテインメント事業");
+    expect(b.titleParts).toEqual(["ユーエイ", "Web"]);
   });
 });

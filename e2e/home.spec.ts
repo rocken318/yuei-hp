@@ -166,12 +166,14 @@ test.describe("home", () => {
         const words = Array.from(
           document.querySelectorAll('[data-testid="message"] p > span[aria-hidden] > span'),
         ).map((el) => Number(getComputedStyle(el).opacity).toFixed(2));
-        const cards = Array.from(document.querySelectorAll('[data-testid="businesses"] .origin-top')).map(
-          (el) => getComputedStyle(el).transform,
+        // Business prism: the pinned stage's position and every face's pose.
+        const stage = document.querySelector('[data-testid="businesses-stage"]')?.getBoundingClientRect().top;
+        const faces = Array.from(document.querySelectorAll('[data-testid="businesses-prism"] > article')).map(
+          (el) => `${getComputedStyle(el).transform} ${getComputedStyle(el).opacity}`,
         );
         const scan = document.querySelector<HTMLElement>('[data-testid="signage"] figure .pointer-events-none')
           ?.style.top;
-        return JSON.stringify({ words, cards, scan });
+        return JSON.stringify({ words, stage, faces, scan });
       });
 
     // Wait until scroll-linked motion is live (after hydration the not yet
@@ -188,11 +190,14 @@ test.describe("home", () => {
       return next;
     };
 
-    // Mid-message, mid-stack and mid-map.
-    for (const [id, offset] of [["message", 300], ["businesses", 1400], ["signage", 200]] as const) {
+    // Mid-message, mid-turn of the business prism (1.4 viewports into its
+    // 3-viewport pin: between the 2nd and 3rd face) and mid-map. Offsets in
+    // px, or "<n>vh" in viewport heights.
+    for (const [id, offset] of [["message", "300"], ["businesses", "1.4vh"], ["signage", "200"]] as const) {
       await setToolbarHidden(true);
       await page.getByTestId(id).evaluate((el, off) => {
-        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY + off);
+        const px = off.endsWith("vh") ? parseFloat(off) * window.innerHeight : Number(off);
+        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY + px);
       }, offset);
       const before = await settledScene();
       const y = await page.evaluate(() => window.scrollY);
